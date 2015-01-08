@@ -17,6 +17,9 @@ var dotProp = require('dot-prop');
 
 dotProp({foo: {bar: 'unicorn'}}, 'foo.bar');
 //=> 'unicorn'
+
+dotProp({foo: {bar: 'a'}}, 'foo.notDefined.deep');
+//=> undefined
 ```
 
 

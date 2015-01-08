@@ -11,5 +11,6 @@ test(function (t) {
 	t.assert(dotProp({foo: {bar: true}}, 'foo.bar') === true);
 	t.assert(dotProp({foo: {bar: {baz: true}}}, 'foo.bar.baz') === true);
 	t.assert(dotProp({foo: {bar: {baz: null}}}, 'foo.bar.baz') === null);
+	t.assert(dotProp({foo: {bar: 'a'}}, 'foo.fake.fake2') === undefined);
 	t.end();
 });
