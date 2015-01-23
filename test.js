@@ -3,8 +3,9 @@ var test = require('ava');
 var dotProp = require('./');
 
 test(function (t) {
-	var f1 = {foo: 1};
+	var f1 = {foo: {bar: 1}};
 	t.assert(dotProp(f1) === f1);
+	t.assert(dotProp(f1, 'foo') === f1.foo);
 	t.assert(dotProp({foo: 1}, 'foo') === 1);
 	t.assert(dotProp({foo: null}, 'foo') === null);
 	t.assert(dotProp({foo: undefined}, 'foo') === undefined);
