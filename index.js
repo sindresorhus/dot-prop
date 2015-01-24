@@ -11,5 +11,5 @@ module.exports = function getProp(obj, path) {
 
 	path = path.split('.');
 
-	return getProp(obj[path.shift()], path.join('.'));
+	return getProp(obj[path.shift()], path.length && path.join('.'));
 };
