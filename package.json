@@ -26,7 +26,8 @@
     "dot",
     "path",
     "get",
-    "access"
+    "access",
+    "notation"
   ],
   "devDependencies": {
     "ava": "0.0.4"
