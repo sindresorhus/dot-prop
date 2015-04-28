@@ -22,6 +22,9 @@ dotProp.get({foo: {bar: 'unicorn'}}, 'foo.bar');
 dotProp.get({foo: {bar: 'a'}}, 'foo.notDefined.deep');
 //=> undefined
 
+dotProp.get({'foo.bar': {baz: 'a'}}, ['foo.bar', 'baz']);
+//=> 'a'
+
 // setter
 var obj = {foo: {bar: 'a'}};
 dotProp.set(obj, 'foo.bar', 'b');
@@ -31,6 +34,10 @@ console.log(obj);
 dotProp.set(obj, 'foo.baz', 'x');
 console.log(obj);
 //=> {foo: {bar: 'b', baz: 'x'}}
+
+dotProp.set(obj, ['foo.bar', 'baz'], 'x');
+console.log(obj);
+//=> {'foo.bar': {baz: 'x'}}
 ```
 
 
