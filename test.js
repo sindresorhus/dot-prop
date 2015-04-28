@@ -2,7 +2,7 @@
 var test = require('ava');
 var dotProp = require('./');
 
-test(function getter (t) {
+test(function getter(t) {
 	var f1 = {foo: {bar: 1}};
 	t.assert(dotProp.get(f1) === f1);
 	t.assert(dotProp.get(f1, 'foo') === f1.foo);
@@ -16,11 +16,11 @@ test(function getter (t) {
 	t.end();
 });
 
-test(function setter (t) {
+test(function setter(t) {
 	var f1 = {};
 
 	function func() {
-	  return 'test';
+		return 'test';
 	}
 
 	dotProp.set(f1, 'foo', 2);
