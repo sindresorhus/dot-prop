@@ -1,6 +1,6 @@
 # dot-prop [![Build Status](https://travis-ci.org/sindresorhus/dot-prop.svg?branch=master)](https://travis-ci.org/sindresorhus/dot-prop)
 
-> Get a property from a nested object using a dot path
+> Get or set a property from a nested object using a dot path
 
 
 ## Install
@@ -15,11 +15,22 @@ $ npm install --save dot-prop
 ```js
 var dotProp = require('dot-prop');
 
-dotProp({foo: {bar: 'unicorn'}}, 'foo.bar');
+// getter
+dotProp.get({foo: {bar: 'unicorn'}}, 'foo.bar');
 //=> 'unicorn'
 
-dotProp({foo: {bar: 'a'}}, 'foo.notDefined.deep');
+dotProp.get({foo: {bar: 'a'}}, 'foo.notDefined.deep');
 //=> undefined
+
+// setter
+var obj = {foo: {bar: 'a'}};
+dotProp.set(obj, 'foo.bar', 'b');
+console.log(obj);
+//=> {foo: {bar: 'b'}}
+
+dotProp.set(obj, 'foo.baz', 'x');
+console.log(obj);
+//=> {foo: {bar: 'b', baz: 'x'}}
 ```
 
 
