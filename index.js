@@ -5,11 +5,16 @@ function isObject(x) {
 }
 
 module.exports.get = function (obj, path) {
-	if (!isObject(obj) || typeof path !== 'string') {
+	if (!isObject(obj) || (typeof path !== 'string' && !Array.isArray(path))) {
 		return obj;
 	}
 
-	var pathArr = path.split('.');
+	var pathArr = path;
+
+	if (typeof path === 'string') {
+		pathArr = path.split('.');
+	}
+
 	pathArr.some(function (path, index) {
 		obj = obj[path];
 
@@ -22,11 +27,16 @@ module.exports.get = function (obj, path) {
 };
 
 module.exports.set = function (obj, path, value) {
-	if (!isObject(obj) || typeof path !== 'string') {
+	if (!isObject(obj) || (typeof path !== 'string' && !Array.isArray(path))) {
 		return;
 	}
 
-	var pathArr = path.split('.');
+	var pathArr = path;
+
+	if (typeof path === 'string') {
+		pathArr = path.split('.');
+	}
+
 	pathArr.forEach(function (path, index) {
 		if (!isObject(obj[path])) {
 			obj[path] = {};
