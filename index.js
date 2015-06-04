@@ -1,11 +1,11 @@
 'use strict';
 
-function isObject(x) {
+function isObjOrFn(x) {
 	return (typeof x === 'object' || typeof x === 'function') && x !== null;
 }
 
 module.exports.get = function (obj, path) {
-	if (!isObject(obj) || typeof path !== 'string') {
+	if (!isObjOrFn(obj) || typeof path !== 'string') {
 		return obj;
 	}
 
@@ -22,13 +22,13 @@ module.exports.get = function (obj, path) {
 };
 
 module.exports.set = function (obj, path, value) {
-	if (!isObject(obj) || typeof path !== 'string') {
+	if (!isObjOrFn(obj) || typeof path !== 'string') {
 		return;
 	}
 
 	var pathArr = path.split('.');
 	pathArr.forEach(function (path, index) {
-		if (!isObject(obj[path])) {
+		if (!isObjOrFn(obj[path])) {
 			obj[path] = {};
 		}
 
