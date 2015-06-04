@@ -1,7 +1,7 @@
 'use strict';
 
 function isObject(x) {
-	return typeof x === 'object' && x !== null;
+	return (typeof x === 'object' || typeof x === 'function') && x !== null;
 }
 
 module.exports.get = function (obj, path) {

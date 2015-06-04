@@ -13,6 +13,12 @@ test(function getter(t) {
 	t.assert(dotProp.get({foo: {bar: {baz: true}}}, 'foo.bar.baz') === true);
 	t.assert(dotProp.get({foo: {bar: {baz: null}}}, 'foo.bar.baz') === null);
 	t.assert(dotProp.get({foo: {bar: 'a'}}, 'foo.fake.fake2') === undefined);
+
+	function fn () {}
+	fn.foo = {bar: 1};
+	t.assert(dotProp.get(fn), fn)
+	t.assert(dotProp.get(fn, 'foo') === fn.foo)
+	t.assert(dotProp.get(fn, 'foo.bar') === 1);
 	t.end();
 });
 
@@ -50,6 +56,14 @@ test(function setter(t) {
 
 	dotProp.set(f1, 'foo.function', func);
 	t.assert(f1.foo.function === func);
+
+	function fn () {}
+	dotProp.set(fn, 'foo.bar', 1);
+	t.assert(fn.foo.bar === 1);
+
+	f1.fn = fn;
+	dotProp.set(f1, 'fn.bar.baz', 2);
+	t.assert(f1.fn.bar.baz, 2);
 
 	t.end();
 });
