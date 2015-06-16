@@ -19,6 +19,9 @@ test(function getter(t) {
 	t.assert(dotProp.get(fn), fn)
 	t.assert(dotProp.get(fn, 'foo') === fn.foo)
 	t.assert(dotProp.get(fn, 'foo.bar') === 1);
+
+	t.assert(dotProp.get({'foo.baz': {bar: true}}, 'foo\\.baz.bar') === true);
+	t.assert(dotProp.get({'fo.ob.az': {bar: true}}, 'fo\\.ob\\.az.bar') === true);
 	t.end();
 });
 
@@ -64,6 +67,12 @@ test(function setter(t) {
 	f1.fn = fn;
 	dotProp.set(f1, 'fn.bar.baz', 2);
 	t.assert(f1.fn.bar.baz, 2);
+
+	dotProp.set(f1, 'foo\\.bar.baz', true);
+	t.assert(f1['foo.bar'].baz === true);
+
+	dotProp.set(f1, 'fo\\.ob\\.ar.baz', true);
+	t.assert(f1['fo.ob.ar'].baz === true);
 
 	t.end();
 });
