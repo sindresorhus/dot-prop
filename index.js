@@ -10,13 +10,20 @@ module.exports.get = function (obj, path) {
 	}
 
 	var pathArr = path.split('.');
-	pathArr.some(function (path, index) {
-		obj = obj[path];
+	for (var index = 0; index < pathArr.length; index++) {
+		var p = pathArr[index];
+		while (p[p.length - 1] === '\\') {
+			p = p.slice(0, -1) + '.';
+			index ++;
+			p += pathArr[index];
+		}
+
+		obj = obj[p];
 
 		if (obj === undefined) {
-			return true;
+			break;
 		}
-	});
+	}
 
 	return obj;
 };
@@ -27,15 +34,22 @@ module.exports.set = function (obj, path, value) {
 	}
 
 	var pathArr = path.split('.');
-	pathArr.forEach(function (path, index) {
-		if (!isObjOrFn(obj[path])) {
-			obj[path] = {};
+	for (var index = 0; index < pathArr.length; index++) {
+		var p = pathArr[index];
+		while (p[p.length - 1] === '\\') {
+			p = p.slice(0, -1) + '.';
+			index ++;
+			p += pathArr[index];
+		}
+
+		if (!isObjOrFn(obj[p])) {
+			obj[p] = {};
 		}
 
 		if (index === pathArr.length - 1) {
-			obj[path] = value;
+			obj[p] = value;
 		}
 
-		obj = obj[path];
-	});
+		obj = obj[p];
+	}
 };
