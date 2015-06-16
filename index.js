@@ -16,8 +16,7 @@ module.exports.get = function (obj, path) {
 
 		while (p[p.length - 1] === '\\') {
 			p = p.slice(0, -1) + '.';
-			i++;
-			p += pathArr[i];
+			p += pathArr[++i];
 		}
 
 		obj = obj[p];
@@ -42,8 +41,7 @@ module.exports.set = function (obj, path, value) {
 
 		while (p[p.length - 1] === '\\') {
 			p = p.slice(0, -1) + '.';
-			i++;
-			p += pathArr[i];
+			p += pathArr[++i];
 		}
 
 		if (!isObjOrFn(obj[p])) {

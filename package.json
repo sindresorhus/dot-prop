@@ -27,7 +27,8 @@
     "path",
     "get",
     "access",
-    "notation"
+    "notation",
+    "dotty"
   ],
   "devDependencies": {
     "ava": "0.0.4"
