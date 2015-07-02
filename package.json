@@ -30,6 +30,9 @@
     "notation",
     "dotty"
   ],
+  "dependencies": {
+    "is-object-like": "^1.0.1"
+  },
   "devDependencies": {
     "ava": "0.0.4"
   }

@@ -1,8 +1,6 @@
 'use strict';
 
-function isObjOrFn(x) {
-	return (typeof x === 'object' || typeof x === 'function') && x !== null;
-}
+var isObjOrFn = require('is-object-like');
 
 module.exports.get = function (obj, path) {
 	if (!isObjOrFn(obj) || typeof path !== 'string') {
