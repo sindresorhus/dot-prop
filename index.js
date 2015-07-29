@@ -1,9 +1,8 @@
 'use strict';
-
-var isObjOrFn = require('is-object-like');
+var isObj = require('is-obj');
 
 module.exports.get = function (obj, path) {
-	if (!isObjOrFn(obj) || typeof path !== 'string') {
+	if (!isObj(obj) || typeof path !== 'string') {
 		return obj;
 	}
 
@@ -28,7 +27,7 @@ module.exports.get = function (obj, path) {
 };
 
 module.exports.set = function (obj, path, value) {
-	if (!isObjOrFn(obj) || typeof path !== 'string') {
+	if (!isObj(obj) || typeof path !== 'string') {
 		return;
 	}
 
@@ -42,7 +41,7 @@ module.exports.set = function (obj, path, value) {
 			p += pathArr[++i];
 		}
 
-		if (!isObjOrFn(obj[p])) {
+		if (!isObj(obj[p])) {
 			obj[p] = {};
 		}
 
