@@ -13,7 +13,7 @@
     "node": ">=0.10.0"
   },
   "scripts": {
-    "test": "node test.js"
+    "test": "ava && xo"
   },
   "files": [
     "index.js"
@@ -34,6 +34,7 @@
     "is-obj": "^1.0.0"
   },
   "devDependencies": {
-    "ava": "0.0.4"
+    "ava": "*",
+    "xo": "*"
   }
 }
