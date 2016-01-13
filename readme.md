@@ -13,7 +13,7 @@ $ npm install --save dot-prop
 ## Usage
 
 ```js
-var dotProp = require('dot-prop');
+const dotProp = require('dot-prop');
 
 // getter
 dotProp.get({foo: {bar: 'unicorn'}}, 'foo.bar');
@@ -26,7 +26,7 @@ dotProp.get({foo: {'dot.dot': 'unicorn'}}, 'foo.dot\\.dot');
 //=> 'unicorn'
 
 // setter
-var obj = {foo: {bar: 'a'}};
+const obj = {foo: {bar: 'a'}};
 dotProp.set(obj, 'foo.bar', 'b');
 console.log(obj);
 //=> {foo: {bar: 'b'}}
@@ -39,6 +39,32 @@ dotProp.set(obj, 'foo.dot\\.dot', 'unicorn');
 console.log(obj);
 //=> {foo: {bar: 'b', baz: 'x', 'dot.dot': 'unicorn'}}
 ```
+
+
+## API
+
+### get(obj, path)
+
+### set(obj, path, value)
+
+#### obj
+
+Type: `object`
+
+Object to get or set the `path` value.
+
+#### path
+
+Type: `string`
+
+Path of the property in the object. Use `.` for nested objects or `\\.` to add a `.` in a key.
+
+#### value
+
+Type: `any`
+
+Value to set at `path`.
+
 
 ## License
 
