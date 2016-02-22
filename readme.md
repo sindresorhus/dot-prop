@@ -1,6 +1,6 @@
 # dot-prop [![Build Status](https://travis-ci.org/sindresorhus/dot-prop.svg?branch=master)](https://travis-ci.org/sindresorhus/dot-prop)
 
-> Get or set a property from a nested object using a dot path
+> Get, set or delete a property from a nested object using a dot path
 
 
 ## Install
@@ -38,6 +38,22 @@ console.log(obj);
 dotProp.set(obj, 'foo.dot\\.dot', 'unicorn');
 console.log(obj);
 //=> {foo: {bar: 'b', baz: 'x', 'dot.dot': 'unicorn'}}
+
+// deleter
+const obj = {foo: {bar: 'a'}};
+dotProp.del(obj, 'foo.bar');
+console.log(obj);
+//=> {foo: {}}
+
+obj.foo.bar = {x: 'y', y: 'x'};
+dotProp.del(obj, 'foo.bar.x');
+console.log(obj);
+//=> {foo: {bar: {y: 'x'}}}
+
+obj.dotted = {sub: {'dotted.prop': 'foo', other: 'prop'}};
+dotProp.del(obj, 'sub.dotted\\.prop')
+console.log(obj.dotted);
+//=> {sub: {other: 'prop'}}
 ```
 
 

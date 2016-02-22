@@ -52,3 +52,31 @@ module.exports.set = function (obj, path, value) {
 		obj = obj[p];
 	}
 };
+
+module.exports.del = function (obj, path) {
+	if (!isObj(obj) || typeof path !== 'string') {
+		return;
+	}
+
+	var pathArr = path.split('.');
+
+	for (var i = 0; i < pathArr.length; i++) {
+		var p = pathArr[i];
+
+		while (p[p.length - 1] === '\\') {
+			p = p.slice(0, -1) + '.';
+			p += pathArr[++i];
+		}
+
+		if (i === pathArr.length - 1) {
+			delete obj[p];
+			return;
+		}
+
+		obj = obj[p];
+
+		if (obj === undefined) {
+			return;
+		}
+	}
+};
