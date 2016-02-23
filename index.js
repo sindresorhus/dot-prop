@@ -53,7 +53,7 @@ module.exports.set = function (obj, path, value) {
 	}
 };
 
-module.exports.del = function (obj, path) {
+module.exports.delete = function (obj, path) {
 	if (!isObj(obj) || typeof path !== 'string') {
 		return;
 	}
@@ -74,9 +74,5 @@ module.exports.del = function (obj, path) {
 		}
 
 		obj = obj[p];
-
-		if (obj === undefined) {
-			return;
-		}
 	}
 };
