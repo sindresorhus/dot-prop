@@ -1,7 +1,7 @@
 import test from 'ava';
 import m from './';
 
-test(function getter(t) {
+test('get', t => {
 	const f1 = {foo: {bar: 1}};
 	t.is(m.get(f1), f1);
 	t.is(m.get(f1, 'foo'), f1.foo);
@@ -23,12 +23,9 @@ test(function getter(t) {
 	t.is(m.get({'fo.ob.az': {bar: true}}, 'fo\\.ob\\.az.bar'), true);
 });
 
-test(function setter(t) {
+test('set', t => {
+	const func = () => 'test';
 	let f1 = {};
-
-	function func() {
-		return 'test';
-	}
 
 	m.set(f1, 'foo', 2);
 	t.is(f1.foo, 2);
@@ -73,7 +70,7 @@ test(function setter(t) {
 	t.is(f1['fo.ob.ar'].baz, true);
 });
 
-test(function deleter(t) {
+test('delete', t => {
 	const func = () => 'test';
 	func.foo = 'bar';
 

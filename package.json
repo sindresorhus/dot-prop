@@ -1,7 +1,7 @@
 {
   "name": "dot-prop",
   "version": "2.2.0",
-  "description": "Get or set a property from a nested object using a dot path",
+  "description": "Get, set, or delete a property from a nested object using a dot path",
   "license": "MIT",
   "repository": "sindresorhus/dot-prop",
   "author": {
@@ -10,7 +10,7 @@
     "url": "sindresorhus.com"
   },
   "engines": {
-    "node": ">=0.12.0"
+    "node": ">=0.10.0"
   },
   "scripts": {
     "test": "ava && xo"
@@ -26,6 +26,9 @@
     "dot",
     "path",
     "get",
+    "set",
+    "delete",
+    "del",
     "access",
     "notation",
     "dotty"
