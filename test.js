@@ -72,3 +72,43 @@ test(function setter(t) {
 	m.set(f1, 'fo\\.ob\\.ar.baz', true);
 	t.is(f1['fo.ob.ar'].baz, true);
 });
+
+test(function deleter(t) {
+	const func = () => 'test';
+	func.foo = 'bar';
+
+	const inner = {a: 'a', b: 'b', c: 'c', func: func};
+	const f1 = {foo: {bar: {baz: inner}}, top: {dog: 'sindre'}};
+
+	t.is(f1.foo.bar.baz.c, 'c');
+	m.delete(f1, 'foo.bar.baz.c');
+	t.is(f1.foo.bar.baz.c, undefined);
+
+	t.is(f1.top.dog, 'sindre');
+	m.delete(f1, 'top');
+	t.is(f1.top, undefined);
+
+	t.is(f1.foo.bar.baz.func.foo, 'bar');
+	m.delete(f1, 'foo.bar.baz.func.foo');
+	t.is(f1.foo.bar.baz.func.foo, undefined);
+
+	t.is(f1.foo.bar.baz.func, func);
+	m.delete(f1, 'foo.bar.baz.func');
+	t.is(f1.foo.bar.baz.func, undefined);
+
+	m.set(f1, 'foo\\.bar.baz', true);
+	t.is(f1['foo.bar'].baz, true);
+	m.delete(f1, 'foo\\.bar.baz');
+	t.is(f1['foo.bar'].baz, undefined);
+
+	const f2 = {};
+	m.set(f2, 'foo.bar\\.baz', true);
+	t.is(f2.foo['bar.baz'], true);
+	m.delete(f2, 'foo.bar\\.baz');
+	t.is(f2.foo['bar.baz'], undefined);
+
+	f2.dotted = {sub: {'dotted.prop': 'foo', 'other': 'prop'}};
+	m.delete(f2, 'dotted.sub.dotted\\.prop');
+	t.is(f2.dotted.sub['dotted.prop'], undefined);
+	t.is(f2.dotted.sub.other, 'prop');
+});
