@@ -13,7 +13,8 @@
     "node": ">=0.10.0"
   },
   "scripts": {
-    "test": "ava && xo"
+    "test": "ava && xo",
+    "bench": "matcha bench.js"
   },
   "files": [
     "index.js"
@@ -38,6 +39,7 @@
   },
   "devDependencies": {
     "ava": "*",
+    "matcha": "^0.6.1",
     "xo": "*"
   }
 }
