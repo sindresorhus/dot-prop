@@ -37,12 +37,12 @@ console.log(obj);
 
 // deleter
 const obj = {foo: {bar: 'a'}};
-dotProp.del(obj, 'foo.bar');
+dotProp.delete(obj, 'foo.bar');
 console.log(obj);
 //=> {foo: {}}
 
 obj.foo.bar = {x: 'y', y: 'x'};
-dotProp.del(obj, 'foo.bar.x');
+dotProp.delete(obj, 'foo.bar.x');
 console.log(obj);
 //=> {foo: {bar: {y: 'x'}}}
 ```
