@@ -109,3 +109,25 @@ test('delete', t => {
 	t.is(f2.dotted.sub['dotted.prop'], undefined);
 	t.is(f2.dotted.sub.other, 'prop');
 });
+
+test('has', t => {
+	const f1 = {foo: {bar: 1}};
+	t.is(m.has(f1), false);
+	t.is(m.has(f1, 'foo'), true);
+	t.is(m.has({foo: 1}, 'foo'), true);
+	t.is(m.has({foo: null}, 'foo'), true);
+	t.is(m.has({foo: undefined}, 'foo'), false);
+	t.is(m.has({foo: {bar: true}}, 'foo.bar'), true);
+	t.is(m.has({foo: {bar: {baz: true}}}, 'foo.bar.baz'), true);
+	t.is(m.has({foo: {bar: {baz: null}}}, 'foo.bar.baz'), true);
+	t.is(m.has({foo: {bar: 'a'}}, 'foo.fake.fake2'), false);
+
+	function fn() {}
+	fn.foo = {bar: 1};
+	t.is(m.has(fn), false);
+	t.is(m.has(fn, 'foo'), true);
+	t.is(m.has(fn, 'foo.bar'), true);
+
+	t.is(m.has({'foo.baz': {bar: true}}, 'foo\\.baz.bar'), true);
+	t.is(m.has({'fo.ob.az': {bar: true}}, 'fo\\.ob\\.az.bar'), true);
+});
