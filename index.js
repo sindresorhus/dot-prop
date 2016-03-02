@@ -60,6 +60,24 @@ module.exports.delete = function (obj, path) {
 	}
 };
 
+module.exports.has = function (obj, path) {
+	if (!isObj(obj) || typeof path !== 'string') {
+		return false;
+	}
+
+	var pathArr = getPathSegments(path);
+
+	for (var i = 0; i < pathArr.length; i++) {
+		obj = obj[pathArr[i]];
+
+		if (obj === undefined) {
+			return false;
+		}
+	}
+
+	return true;
+};
+
 function getPathSegments(path) {
 	var pathArr = path.split('.');
 	var parts = [];
