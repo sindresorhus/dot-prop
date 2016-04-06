@@ -39,7 +39,7 @@
   },
   "devDependencies": {
     "ava": "*",
-    "matcha": "^0.6.1",
+    "matcha": "^0.7.0",
     "xo": "*"
   }
 }
