@@ -67,6 +67,7 @@ Object to get, set, or delete the `path` value.
 Type: `string`
 
 Path of the property in the object. Use `.` for nested objects or `\\.` to add a `.` in a key.
+*NOTE*: `'\\'` can only escape `'.'`.
 
 #### value
 
