@@ -13,6 +13,11 @@ test('get', t => {
 	t.is(m.get({foo: {bar: {baz: null}}}, 'foo.bar.baz'), null);
 	t.is(m.get({foo: {bar: 'a'}}, 'foo.fake.fake2'), undefined);
 
+	const f2 = {};
+	Object.defineProperty(f2, 'foo', {value: 'bar', enumerable: false});
+	t.is(m.get(f2, 'foo'), undefined);
+	t.is(m.get({}, 'hasOwnProperty'), undefined);
+
 	function fn() {}
 	fn.foo = {bar: 1};
 	t.is(m.get(fn), fn);
