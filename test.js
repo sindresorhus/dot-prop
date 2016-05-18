@@ -12,6 +12,13 @@ test('get', t => {
 	t.is(m.get({foo: {bar: {baz: true}}}, 'foo.bar.baz'), true);
 	t.is(m.get({foo: {bar: {baz: null}}}, 'foo.bar.baz'), null);
 	t.is(m.get({foo: {bar: 'a'}}, 'foo.fake.fake2'), undefined);
+	t.is(m.get({'\\': true}, '\\'), true);
+	t.is(m.get({'\\foo': true}, '\\foo'), true);
+	t.is(m.get({'bar\\': true}, 'bar\\'), true);
+	t.is(m.get({'foo\\bar': true}, 'foo\\bar'), true);
+	t.is(m.get({'\\.foo': true}, '\\\\.foo'), true);
+	t.is(m.get({'bar\\.': true}, 'bar\\\\.'), true);
+	t.is(m.get({'foo\\.bar': true}, 'foo\\\\.bar'), true);
 
 	const f2 = {};
 	Object.defineProperty(f2, 'foo', {value: 'bar', enumerable: false});

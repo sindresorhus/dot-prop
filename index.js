@@ -90,7 +90,7 @@ function getPathSegments(path) {
 	for (var i = 0; i < pathArr.length; i++) {
 		var p = pathArr[i];
 
-		while (p[p.length - 1] === '\\') {
+		while (p[p.length - 1] === '\\' && pathArr[i + 1] !== undefined) {
 			p = p.slice(0, -1) + '.';
 			p += pathArr[++i];
 		}
