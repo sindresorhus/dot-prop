@@ -58,7 +58,7 @@ console.log(obj);
 
 #### obj
 
-Type: `object`
+Type: `Object`
 
 Object to get, set, or delete the `path` value.
 
@@ -66,7 +66,9 @@ Object to get, set, or delete the `path` value.
 
 Type: `string`
 
-Path of the property in the object. Use `.` for nested objects or `\\.` to add a `.` in a key.
+Path of the property in the object, using `.` to separate each nested key.
+
+Use `\\.` if you have a `.` in the key.
 
 #### value
 
@@ -77,4 +79,4 @@ Value to set at `path`.
 
 ## License
 
-MIT © [Sindre Sorhus](http://sindresorhus.com)
+MIT © [Sindre Sorhus](https://sindresorhus.com)
