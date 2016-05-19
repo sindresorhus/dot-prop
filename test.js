@@ -34,8 +34,8 @@ test('get', t => {
 	t.is(m.get(fn, 'foo'), fn.foo);
 	t.is(m.get(fn, 'foo.bar'), 1);
 
-	let f2 = {foo: null};
-	t.is(m.get(f2, 'foo.bar'), undefined);
+	const f3 = {foo: null};
+	t.is(m.get(f3, 'foo.bar'), undefined);
 
 	t.is(m.get({'foo.baz': {bar: true}}, 'foo\\.baz.bar'), true);
 	t.is(m.get({'fo.ob.az': {bar: true}}, 'fo\\.ob\\.az.bar'), true);
