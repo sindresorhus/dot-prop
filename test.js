@@ -4,6 +4,8 @@ import m from './';
 test('get', t => {
 	const f1 = {foo: {bar: 1}};
 	t.is(m.get(f1), f1);
+	f1[''] = 'foo';
+	t.is(m.get(f1, ''), 'foo');
 	t.is(m.get(f1, 'foo'), f1.foo);
 	t.is(m.get({foo: 1}, 'foo'), 1);
 	t.is(m.get({foo: null}, 'foo'), null);
@@ -11,6 +13,7 @@ test('get', t => {
 	t.is(m.get({foo: {bar: true}}, 'foo.bar'), true);
 	t.is(m.get({foo: {bar: {baz: true}}}, 'foo.bar.baz'), true);
 	t.is(m.get({foo: {bar: {baz: null}}}, 'foo.bar.baz'), null);
+	t.is(m.get({foo: {bar: 'a'}}, 'foo.fake'), undefined);
 	t.is(m.get({foo: {bar: 'a'}}, 'foo.fake.fake2'), undefined);
 	t.is(m.get({'\\': true}, '\\'), true);
 	t.is(m.get({'\\foo': true}, '\\foo'), true);
@@ -30,6 +33,9 @@ test('get', t => {
 	t.is(m.get(fn), fn);
 	t.is(m.get(fn, 'foo'), fn.foo);
 	t.is(m.get(fn, 'foo.bar'), 1);
+
+	let f2 = {foo: null};
+	t.is(m.get(f2, 'foo.bar'), undefined);
 
 	t.is(m.get({'foo.baz': {bar: true}}, 'foo\\.baz.bar'), true);
 	t.is(m.get({'fo.ob.az': {bar: true}}, 'fo\\.ob\\.az.bar'), true);
@@ -74,6 +80,14 @@ test('set', t => {
 	f1.fn = fn;
 	m.set(f1, 'fn.bar.baz', 2);
 	t.is(f1.fn.bar.baz, 2);
+
+	let f2 = {foo: null};
+	m.set(f2, 'foo.bar', 2);
+	t.is(f2.foo.bar, 2);
+
+	let f3 = {};
+	m.set(f3, '', 3);
+	t.is(f3[''], 3);
 
 	m.set(f1, 'foo\\.bar.baz', true);
 	t.is(f1['foo.bar'].baz, true);
