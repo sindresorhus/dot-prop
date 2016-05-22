@@ -35,6 +35,10 @@ dotProp.set(obj, 'foo.baz', 'x');
 console.log(obj);
 //=> {foo: {bar: 'b', baz: 'x'}}
 
+// has
+dotProp.has({foo: {bar: 'unicorn'}}, 'foo.bar');
+//=> true
+
 // deleter
 const obj = {foo: {bar: 'a'}};
 dotProp.delete(obj, 'foo.bar');
@@ -53,6 +57,8 @@ console.log(obj);
 ### get(obj, path)
 
 ### set(obj, path, value)
+
+### has(obj, path)
 
 ### delete(obj, path)
 
