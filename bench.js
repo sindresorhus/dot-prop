@@ -25,7 +25,10 @@ bench('get', function () {
 	m.get({'foo\\.bar': true}, 'foo\\\\.bar');
 
 	var f2 = {};
-	Object.defineProperty(f2, 'foo', {value: 'bar', enumerable: false});
+	Object.defineProperty(f2, 'foo', {
+		value: 'bar',
+		enumerable: false
+	});
 	m.get(f2, 'foo');
 	m.get({}, 'hasOwnProperty');
 
@@ -86,8 +89,23 @@ bench('delete', function () {
 	var func = () => 'test';
 	func.foo = 'bar';
 
-	var inner = {a: 'a', b: 'b', c: 'c', func: func};
-	var f1 = {foo: {bar: {baz: inner}}, top: {dog: 'sindre'}};
+	var inner = {
+		a: 'a',
+		b: 'b',
+		c: 'c',
+		func: func
+	};
+
+	var f1 = {
+		foo: {
+			bar: {
+				baz: inner
+			}
+		},
+		top: {
+			dog: 'sindre'
+		}
+	};
 
 	m.delete(f1, 'foo.bar.baz.c');
 
@@ -104,7 +122,12 @@ bench('delete', function () {
 	m.set(f2, 'foo.bar\\.baz', true);
 	m.delete(f2, 'foo.bar\\.baz');
 
-	f2.dotted = {sub: {'dotted.prop': 'foo', 'other': 'prop'}};
+	f2.dotted = {
+		sub: {
+			'dotted.prop': 'foo',
+			'other': 'prop'
+		}
+	};
 	m.delete(f2, 'dotted.sub.dotted\\.prop');
 });
 

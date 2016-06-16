@@ -24,7 +24,10 @@ test('get', t => {
 	t.is(m.get({'foo\\.bar': true}, 'foo\\\\.bar'), true);
 
 	const f2 = {};
-	Object.defineProperty(f2, 'foo', {value: 'bar', enumerable: false});
+	Object.defineProperty(f2, 'foo', {
+		value: 'bar',
+		enumerable: false
+	});
 	t.is(m.get(f2, 'foo'), undefined);
 	t.is(m.get({}, 'hasOwnProperty'), undefined);
 
@@ -100,8 +103,22 @@ test('delete', t => {
 	const func = () => 'test';
 	func.foo = 'bar';
 
-	const inner = {a: 'a', b: 'b', c: 'c', func: func};
-	const f1 = {foo: {bar: {baz: inner}}, top: {dog: 'sindre'}};
+	const inner = {
+		a: 'a',
+		b: 'b',
+		c: 'c',
+		func: func
+	};
+	const f1 = {
+		foo: {
+			bar: {
+				baz: inner
+			}
+		},
+		top: {
+			dog: 'sindre'
+		}
+	};
 
 	t.is(f1.foo.bar.baz.c, 'c');
 	m.delete(f1, 'foo.bar.baz.c');
@@ -130,7 +147,12 @@ test('delete', t => {
 	m.delete(f2, 'foo.bar\\.baz');
 	t.is(f2.foo['bar.baz'], undefined);
 
-	f2.dotted = {sub: {'dotted.prop': 'foo', 'other': 'prop'}};
+	f2.dotted = {
+		sub: {
+			'dotted.prop': 'foo',
+			'other': 'prop'
+		}
+	};
 	m.delete(f2, 'dotted.sub.dotted\\.prop');
 	t.is(f2.dotted.sub['dotted.prop'], undefined);
 	t.is(f2.dotted.sub.other, 'prop');
