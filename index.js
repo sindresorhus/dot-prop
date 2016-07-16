@@ -9,7 +9,7 @@ module.exports.get = function (obj, path) {
 	var pathArr = getPathSegments(path);
 
 	for (var i = 0; i < pathArr.length; i++) {
-		if (!obj.propertyIsEnumerable(pathArr[i])) {
+		if (!Object.prototype.propertyIsEnumerable.call(obj, pathArr[i])) {
 			return;
 		}
 
