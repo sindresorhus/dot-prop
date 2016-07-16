@@ -87,7 +87,7 @@ module.exports.has = function (obj, path) {
 	for (var i = 0; i < pathArr.length; i++) {
 		obj = obj[pathArr[i]];
 
-		if (obj === undefined || (i !== pathArr.length - 1 && obj === null)) {
+		if ((obj === undefined || obj === null) && i !== pathArr.length - 1) {
 			return false;
 		}
 	}

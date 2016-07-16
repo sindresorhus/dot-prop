@@ -169,7 +169,7 @@ test('has', t => {
 	t.is(m.has(f1, 'foo'), true);
 	t.is(m.has({foo: 1}, 'foo'), true);
 	t.is(m.has({foo: null}, 'foo'), true);
-	t.is(m.has({foo: undefined}, 'foo'), false);
+	t.is(m.has({foo: undefined}, 'foo'), true);
 	t.is(m.has({foo: {bar: true}}, 'foo.bar'), true);
 	t.is(m.has({foo: {bar: {baz: true}}}, 'foo.bar.baz'), true);
 	t.is(m.has({foo: {bar: {baz: null}}}, 'foo.bar.baz'), true);
