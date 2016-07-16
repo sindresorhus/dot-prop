@@ -156,6 +156,10 @@ test('delete', t => {
 	m.delete(f2, 'dotted.sub.dotted\\.prop');
 	t.is(f2.dotted.sub['dotted.prop'], undefined);
 	t.is(f2.dotted.sub.other, 'prop');
+
+	const f3 = {foo: null};
+	m.delete(f3, 'foo.bar');
+	t.deepEqual(f3, {foo: null});
 });
 
 test('has', t => {

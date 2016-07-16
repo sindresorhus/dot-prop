@@ -71,6 +71,10 @@ module.exports.delete = function (obj, path) {
 		}
 
 		obj = obj[p];
+
+		if (!isObj(obj)) {
+			return;
+		}
 	}
 };
 
