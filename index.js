@@ -9,8 +9,7 @@ module.exports.get = function (obj, path) {
 	var pathArr = getPathSegments(path);
 
 	for (var i = 0; i < pathArr.length; i++) {
-		var descriptor = Object.getOwnPropertyDescriptor(obj, pathArr[i]) || Object.getOwnPropertyDescriptor(Object.prototype, pathArr[i]);
-		if (descriptor && !descriptor.enumerable) {
+		if (!obj.propertyIsEnumerable(pathArr[i])) {
 			return;
 		}
 

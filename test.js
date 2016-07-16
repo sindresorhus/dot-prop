@@ -22,6 +22,7 @@ test('get', t => {
 	t.is(m.get({'\\.foo': true}, '\\\\.foo'), true);
 	t.is(m.get({'bar\\.': true}, 'bar\\\\.'), true);
 	t.is(m.get({'foo\\.bar': true}, 'foo\\\\.bar'), true);
+	t.is(m.get({foo: 1}, 'foo.bar'), undefined);
 
 	const f2 = {};
 	Object.defineProperty(f2, 'foo', {
