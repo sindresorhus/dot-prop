@@ -1,7 +1,7 @@
 'use strict';
 var isObj = require('is-obj');
 
-module.exports.get = function (obj, path) {
+module.exports.get = function (obj, path, value) {
 	if (!isObj(obj) || typeof path !== 'string') {
 		return obj;
 	}
@@ -21,9 +21,9 @@ module.exports.get = function (obj, path) {
 			// if this is not the last bit of the path, and
 			// if it did't return `undefined`
 			// it would return `null` if `obj` is `null`
-			// but we want `get({foo: null}, 'foo.bar')` to equal `undefined` not `null`
+			// but we want `get({foo: null}, 'foo.bar')` to equal `undefined` or the supplied value not `null`
 			if (i !== pathArr.length - 1) {
-				return undefined;
+				return value;
 			}
 
 			break;

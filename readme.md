@@ -22,6 +22,9 @@ dotProp.get({foo: {bar: 'unicorn'}}, 'foo.bar');
 dotProp.get({foo: {bar: 'a'}}, 'foo.notDefined.deep');
 //=> undefined
 
+dotProp.get({foo: {bar: 'a'}}, 'foo.notDefined.deep', 'default value');
+//=> 'default value'
+
 dotProp.get({foo: {'dot.dot': 'unicorn'}}, 'foo.dot\\.dot');
 //=> 'unicorn'
 
@@ -54,7 +57,7 @@ console.log(obj);
 
 ## API
 
-### get(obj, path)
+### get(obj, path, [value])
 
 ### set(obj, path, value)
 
@@ -80,7 +83,7 @@ Use `\\.` if you have a `.` in the key.
 
 Type: `any`
 
-Value to set at `path`.
+Value to set at `path` or optional default value to return from get.
 
 
 ## License
