@@ -85,9 +85,13 @@ module.exports.has = function (obj, path) {
 	var pathArr = getPathSegments(path);
 
 	for (var i = 0; i < pathArr.length; i++) {
-		obj = obj[pathArr[i]];
+		if (isObj(obj)) {
+			if (!(pathArr[i] in obj)) {
+				return false;
+			}
 
-		if ((obj === undefined || obj === null) && i !== pathArr.length - 1) {
+			obj = obj[pathArr[i]];
+		} else {
 			return false;
 		}
 	}

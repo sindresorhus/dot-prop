@@ -175,6 +175,7 @@ test('has', t => {
 	t.is(m.has({foo: {bar: {baz: null}}}, 'foo.bar.baz'), true);
 	t.is(m.has({foo: {bar: 'a'}}, 'foo.fake.fake2'), false);
 	t.is(m.has({foo: null}, 'foo.bar'), false);
+	t.is(m.has({foo: ''}, 'foo.bar'), false);
 
 	function fn() {}
 	fn.foo = {bar: 1};
