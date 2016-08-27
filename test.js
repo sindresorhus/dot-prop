@@ -85,11 +85,11 @@ test('set', t => {
 	m.set(f1, 'fn.bar.baz', 2);
 	t.is(f1.fn.bar.baz, 2);
 
-	let f2 = {foo: null};
+	const f2 = {foo: null};
 	m.set(f2, 'foo.bar', 2);
 	t.is(f2.foo.bar, 2);
 
-	let f3 = {};
+	const f3 = {};
 	m.set(f3, '', 3);
 	t.is(f3[''], 3);
 
@@ -108,7 +108,7 @@ test('delete', t => {
 		a: 'a',
 		b: 'b',
 		c: 'c',
-		func: func
+		func
 	};
 	const f1 = {
 		foo: {

@@ -1,14 +1,32 @@
 'use strict';
-var isObj = require('is-obj');
+const isObj = require('is-obj');
 
-module.exports.get = function (obj, path) {
+function getPathSegments(path) {
+	const pathArr = path.split('.');
+	const parts = [];
+
+	for (let i = 0; i < pathArr.length; i++) {
+		let p = pathArr[i];
+
+		while (p[p.length - 1] === '\\' && pathArr[i + 1] !== undefined) {
+			p = p.slice(0, -1) + '.';
+			p += pathArr[++i];
+		}
+
+		parts.push(p);
+	}
+
+	return parts;
+}
+
+module.exports.get = (obj, path) => {
 	if (!isObj(obj) || typeof path !== 'string') {
 		return obj;
 	}
 
-	var pathArr = getPathSegments(path);
+	const pathArr = getPathSegments(path);
 
-	for (var i = 0; i < pathArr.length; i++) {
+	for (let i = 0; i < pathArr.length; i++) {
 		if (!Object.prototype.propertyIsEnumerable.call(obj, pathArr[i])) {
 			return;
 		}
@@ -32,15 +50,15 @@ module.exports.get = function (obj, path) {
 	return obj;
 };
 
-module.exports.set = function (obj, path, value) {
+module.exports.set = (obj, path, value) => {
 	if (!isObj(obj) || typeof path !== 'string') {
 		return;
 	}
 
-	var pathArr = getPathSegments(path);
+	const pathArr = getPathSegments(path);
 
-	for (var i = 0; i < pathArr.length; i++) {
-		var p = pathArr[i];
+	for (let i = 0; i < pathArr.length; i++) {
+		const p = pathArr[i];
 
 		if (!isObj(obj[p])) {
 			obj[p] = {};
@@ -54,15 +72,15 @@ module.exports.set = function (obj, path, value) {
 	}
 };
 
-module.exports.delete = function (obj, path) {
+module.exports.delete = (obj, path) => {
 	if (!isObj(obj) || typeof path !== 'string') {
 		return;
 	}
 
-	var pathArr = getPathSegments(path);
+	const pathArr = getPathSegments(path);
 
-	for (var i = 0; i < pathArr.length; i++) {
-		var p = pathArr[i];
+	for (let i = 0; i < pathArr.length; i++) {
+		const p = pathArr[i];
 
 		if (i === pathArr.length - 1) {
 			delete obj[p];
@@ -77,14 +95,14 @@ module.exports.delete = function (obj, path) {
 	}
 };
 
-module.exports.has = function (obj, path) {
+module.exports.has = (obj, path) => {
 	if (!isObj(obj) || typeof path !== 'string') {
 		return false;
 	}
 
-	var pathArr = getPathSegments(path);
+	const pathArr = getPathSegments(path);
 
-	for (var i = 0; i < pathArr.length; i++) {
+	for (let i = 0; i < pathArr.length; i++) {
 		if (isObj(obj)) {
 			if (!(pathArr[i] in obj)) {
 				return false;
@@ -98,21 +116,3 @@ module.exports.has = function (obj, path) {
 
 	return true;
 };
-
-function getPathSegments(path) {
-	var pathArr = path.split('.');
-	var parts = [];
-
-	for (var i = 0; i < pathArr.length; i++) {
-		var p = pathArr[i];
-
-		while (p[p.length - 1] === '\\' && pathArr[i + 1] !== undefined) {
-			p = p.slice(0, -1) + '.';
-			p += pathArr[++i];
-		}
-
-		parts.push(p);
-	}
-
-	return parts;
-}

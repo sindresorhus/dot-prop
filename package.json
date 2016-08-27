@@ -10,7 +10,7 @@
     "url": "sindresorhus.com"
   },
   "engines": {
-    "node": ">=0.10.0"
+    "node": ">=4"
   },
   "scripts": {
     "test": "xo && ava",
@@ -41,5 +41,8 @@
     "ava": "*",
     "matcha": "^0.7.0",
     "xo": "*"
+  },
+  "xo": {
+    "esnext": true
   }
 }

@@ -1,9 +1,9 @@
 'use strict';
 /* globals bench */
-var m = require('./');
+const m = require('./');
 
-bench('get', function () {
-	var f1 = {foo: {bar: 1}};
+bench('get', () => {
+	const f1 = {foo: {bar: 1}};
 	m.get(f1);
 	f1[''] = 'foo';
 	m.get(f1, '');
@@ -24,7 +24,7 @@ bench('get', function () {
 	m.get({'bar\\.': true}, 'bar\\\\.');
 	m.get({'foo\\.bar': true}, 'foo\\\\.bar');
 
-	var f2 = {};
+	const f2 = {};
 	Object.defineProperty(f2, 'foo', {
 		value: 'bar',
 		enumerable: false
@@ -38,16 +38,16 @@ bench('get', function () {
 	m.get(fn, 'foo');
 	m.get(fn, 'foo.bar');
 
-	var f3 = {foo: null};
+	const f3 = {foo: null};
 	m.get(f3, 'foo.bar');
 
 	m.get({'foo.baz': {bar: true}}, 'foo\\.baz.bar');
 	m.get({'fo.ob.az': {bar: true}}, 'fo\\.ob\\.az.bar');
 });
 
-bench('set', function () {
-	var func = () => 'test';
-	var f1 = {};
+bench('set', () => {
+	const func = () => 'test';
+	let f1 = {};
 
 	m.set(f1, 'foo', 2);
 
@@ -74,10 +74,10 @@ bench('set', function () {
 	f1.fn = fn;
 	m.set(f1, 'fn.bar.baz', 2);
 
-	let f2 = {foo: null};
+	const f2 = {foo: null};
 	m.set(f2, 'foo.bar', 2);
 
-	let f3 = {};
+	const f3 = {};
 	m.set(f3, '', 3);
 
 	m.set(f1, 'foo\\.bar.baz', true);
@@ -85,18 +85,18 @@ bench('set', function () {
 	m.set(f1, 'fo\\.ob\\.ar.baz', true);
 });
 
-bench('delete', function () {
-	var func = () => 'test';
+bench('delete', () => {
+	const func = () => 'test';
 	func.foo = 'bar';
 
-	var inner = {
+	const inner = {
 		a: 'a',
 		b: 'b',
 		c: 'c',
-		func: func
+		func
 	};
 
-	var f1 = {
+	const f1 = {
 		foo: {
 			bar: {
 				baz: inner
@@ -118,7 +118,7 @@ bench('delete', function () {
 	m.set(f1, 'foo\\.bar.baz', true);
 	m.delete(f1, 'foo\\.bar.baz');
 
-	var f2 = {};
+	const f2 = {};
 	m.set(f2, 'foo.bar\\.baz', true);
 	m.delete(f2, 'foo.bar\\.baz');
 
@@ -131,8 +131,8 @@ bench('delete', function () {
 	m.delete(f2, 'dotted.sub.dotted\\.prop');
 });
 
-bench('has', function () {
-	var f1 = {foo: {bar: 1}};
+bench('has', () => {
+	const f1 = {foo: {bar: 1}};
 	m.has(f1);
 	m.has(f1, 'foo');
 	m.has({foo: 1}, 'foo');
