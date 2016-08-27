@@ -9,8 +9,7 @@ module.exports.get = function (obj, path) {
 	var pathArr = getPathSegments(path);
 
 	for (var i = 0; i < pathArr.length; i++) {
-		var descriptor = Object.getOwnPropertyDescriptor(obj, pathArr[i]) || Object.getOwnPropertyDescriptor(Object.prototype, pathArr[i]);
-		if (descriptor && !descriptor.enumerable) {
+		if (!Object.prototype.propertyIsEnumerable.call(obj, pathArr[i])) {
 			return;
 		}
 
@@ -71,6 +70,10 @@ module.exports.delete = function (obj, path) {
 		}
 
 		obj = obj[p];
+
+		if (!isObj(obj)) {
+			return;
+		}
 	}
 };
 
@@ -82,9 +85,13 @@ module.exports.has = function (obj, path) {
 	var pathArr = getPathSegments(path);
 
 	for (var i = 0; i < pathArr.length; i++) {
-		obj = obj[pathArr[i]];
+		if (isObj(obj)) {
+			if (!(pathArr[i] in obj)) {
+				return false;
+			}
 
-		if (obj === undefined) {
+			obj = obj[pathArr[i]];
+		} else {
 			return false;
 		}
 	}

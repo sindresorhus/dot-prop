@@ -22,6 +22,7 @@ test('get', t => {
 	t.is(m.get({'\\.foo': true}, '\\\\.foo'), true);
 	t.is(m.get({'bar\\.': true}, 'bar\\\\.'), true);
 	t.is(m.get({'foo\\.bar': true}, 'foo\\\\.bar'), true);
+	t.is(m.get({foo: 1}, 'foo.bar'), undefined);
 
 	const f2 = {};
 	Object.defineProperty(f2, 'foo', {
@@ -156,6 +157,10 @@ test('delete', t => {
 	m.delete(f2, 'dotted.sub.dotted\\.prop');
 	t.is(f2.dotted.sub['dotted.prop'], undefined);
 	t.is(f2.dotted.sub.other, 'prop');
+
+	const f3 = {foo: null};
+	m.delete(f3, 'foo.bar');
+	t.deepEqual(f3, {foo: null});
 });
 
 test('has', t => {
@@ -164,11 +169,13 @@ test('has', t => {
 	t.is(m.has(f1, 'foo'), true);
 	t.is(m.has({foo: 1}, 'foo'), true);
 	t.is(m.has({foo: null}, 'foo'), true);
-	t.is(m.has({foo: undefined}, 'foo'), false);
+	t.is(m.has({foo: undefined}, 'foo'), true);
 	t.is(m.has({foo: {bar: true}}, 'foo.bar'), true);
 	t.is(m.has({foo: {bar: {baz: true}}}, 'foo.bar.baz'), true);
 	t.is(m.has({foo: {bar: {baz: null}}}, 'foo.bar.baz'), true);
 	t.is(m.has({foo: {bar: 'a'}}, 'foo.fake.fake2'), false);
+	t.is(m.has({foo: null}, 'foo.bar'), false);
+	t.is(m.has({foo: ''}, 'foo.bar'), false);
 
 	function fn() {}
 	fn.foo = {bar: 1};
