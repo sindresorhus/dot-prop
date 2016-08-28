@@ -15,6 +15,7 @@ test('get', t => {
 	t.is(m.get({foo: {bar: {baz: null}}}, 'foo.bar.baz'), null);
 	t.is(m.get({foo: {bar: 'a'}}, 'foo.fake'), undefined);
 	t.is(m.get({foo: {bar: 'a'}}, 'foo.fake.fake2'), undefined);
+	t.is(m.get({foo: {bar: 'a'}}, 'foo.fake.fake2', 'some value'), 'some value');
 	t.is(m.get({'\\': true}, '\\'), true);
 	t.is(m.get({'\\foo': true}, '\\foo'), true);
 	t.is(m.get({'bar\\': true}, 'bar\\'), true);
@@ -40,6 +41,7 @@ test('get', t => {
 
 	const f3 = {foo: null};
 	t.is(m.get(f3, 'foo.bar'), undefined);
+	t.is(m.get(f3, 'foo.bar', 'some value'), 'some value');
 
 	t.is(m.get({'foo.baz': {bar: true}}, 'foo\\.baz.bar'), true);
 	t.is(m.get({'fo.ob.az': {bar: true}}, 'fo\\.ob\\.az.bar'), true);
