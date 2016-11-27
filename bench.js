@@ -125,7 +125,7 @@ bench('delete', () => {
 	f2.dotted = {
 		sub: {
 			'dotted.prop': 'foo',
-			'other': 'prop'
+			other: 'prop'
 		}
 	};
 	m.delete(f2, 'dotted.sub.dotted\\.prop');
