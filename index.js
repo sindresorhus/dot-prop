@@ -19,100 +19,102 @@ function getPathSegments(path) {
 	return parts;
 }
 
-module.exports.get = (obj, path, value) => {
-	if (!isObj(obj) || typeof path !== 'string') {
-		return obj;
-	}
-
-	const pathArr = getPathSegments(path);
-
-	for (let i = 0; i < pathArr.length; i++) {
-		if (!Object.prototype.propertyIsEnumerable.call(obj, pathArr[i])) {
-			return value;
+module.exports = {
+	get(obj, path, value) {
+		if (!isObj(obj) || typeof path !== 'string') {
+			return obj;
 		}
 
-		obj = obj[pathArr[i]];
+		const pathArr = getPathSegments(path);
 
-		if (obj === undefined || obj === null) {
-			// `obj` is either `undefined` or `null` so we want to stop the loop, and
-			// if this is not the last bit of the path, and
-			// if it did't return `undefined`
-			// it would return `null` if `obj` is `null`
-			// but we want `get({foo: null}, 'foo.bar')` to equal `undefined`, or the supplied value, not `null`
-			if (i !== pathArr.length - 1) {
+		for (let i = 0; i < pathArr.length; i++) {
+			if (!Object.prototype.propertyIsEnumerable.call(obj, pathArr[i])) {
 				return value;
 			}
 
-			break;
-		}
-	}
+			obj = obj[pathArr[i]];
 
-	return obj;
-};
+			if (obj === undefined || obj === null) {
+				// `obj` is either `undefined` or `null` so we want to stop the loop, and
+				// if this is not the last bit of the path, and
+				// if it did't return `undefined`
+				// it would return `null` if `obj` is `null`
+				// but we want `get({foo: null}, 'foo.bar')` to equal `undefined`, or the supplied value, not `null`
+				if (i !== pathArr.length - 1) {
+					return value;
+				}
 
-module.exports.set = (obj, path, value) => {
-	if (!isObj(obj) || typeof path !== 'string') {
-		return;
-	}
-
-	const pathArr = getPathSegments(path);
-
-	for (let i = 0; i < pathArr.length; i++) {
-		const p = pathArr[i];
-
-		if (!isObj(obj[p])) {
-			obj[p] = {};
+				break;
+			}
 		}
 
-		if (i === pathArr.length - 1) {
-			obj[p] = value;
-		}
+		return obj;
+	},
 
-		obj = obj[p];
-	}
-};
-
-module.exports.delete = (obj, path) => {
-	if (!isObj(obj) || typeof path !== 'string') {
-		return;
-	}
-
-	const pathArr = getPathSegments(path);
-
-	for (let i = 0; i < pathArr.length; i++) {
-		const p = pathArr[i];
-
-		if (i === pathArr.length - 1) {
-			delete obj[p];
+	set(obj, path, value) {
+		if (!isObj(obj) || typeof path !== 'string') {
 			return;
 		}
 
-		obj = obj[p];
+		const pathArr = getPathSegments(path);
 
-		if (!isObj(obj)) {
-			return;
-		}
-	}
-};
+		for (let i = 0; i < pathArr.length; i++) {
+			const p = pathArr[i];
 
-module.exports.has = (obj, path) => {
-	if (!isObj(obj) || typeof path !== 'string') {
-		return false;
-	}
-
-	const pathArr = getPathSegments(path);
-
-	for (let i = 0; i < pathArr.length; i++) {
-		if (isObj(obj)) {
-			if (!(pathArr[i] in obj)) {
-				return false;
+			if (!isObj(obj[p])) {
+				obj[p] = {};
 			}
 
-			obj = obj[pathArr[i]];
-		} else {
+			if (i === pathArr.length - 1) {
+				obj[p] = value;
+			}
+
+			obj = obj[p];
+		}
+	},
+
+	delete(obj, path) {
+		if (!isObj(obj) || typeof path !== 'string') {
+			return;
+		}
+
+		const pathArr = getPathSegments(path);
+
+		for (let i = 0; i < pathArr.length; i++) {
+			const p = pathArr[i];
+
+			if (i === pathArr.length - 1) {
+				delete obj[p];
+				return;
+			}
+
+			obj = obj[p];
+
+			if (!isObj(obj)) {
+				return;
+			}
+		}
+	},
+
+	has(obj, path) {
+		if (!isObj(obj) || typeof path !== 'string') {
 			return false;
 		}
-	}
 
-	return true;
+		const pathArr = getPathSegments(path);
+
+		for (let i = 0; i < pathArr.length; i++) {
+			if (isObj(obj)) {
+				if (!(pathArr[i] in obj)) {
+					return false;
+				}
+
+				obj = obj[pathArr[i]];
+			} else {
+				return false;
+			}
+		}
+
+		return true;
+	}
 };
