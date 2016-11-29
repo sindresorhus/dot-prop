@@ -1,0 +1,6 @@
+.editorconfig
+.gitattributes
+.gitignore
+.travis.yml
+bench.js
+test.js
