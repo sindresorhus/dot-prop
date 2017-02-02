@@ -1,6 +1,14 @@
 'use strict';
 const isObj = require('is-obj');
 
+function isArr(arr) {
+	if (typeof Array.isArray === 'function') {
+		return Array.isArray(arr);
+	}
+
+	return Object.prototype.toString.call(arr) === '[object Array]';
+}
+
 function getPathSegments(path) {
 	const pathArr = path.split('.');
 	const parts = [];
@@ -21,11 +29,13 @@ function getPathSegments(path) {
 
 module.exports = {
 	get(obj, path, value) {
-		if (!isObj(obj) || typeof path !== 'string') {
+		const pathIsArray = isArr(path);
+
+		if (!isObj(obj) || (typeof path !== 'string' && !pathIsArray)) {
 			return obj;
 		}
 
-		const pathArr = getPathSegments(path);
+		const pathArr = (pathIsArray) ? path : getPathSegments(path);
 
 		for (let i = 0; i < pathArr.length; i++) {
 			if (!Object.prototype.propertyIsEnumerable.call(obj, pathArr[i])) {
@@ -52,11 +62,13 @@ module.exports = {
 	},
 
 	set(obj, path, value) {
-		if (!isObj(obj) || typeof path !== 'string') {
+		const pathIsArray = isArr(path);
+
+		if (!isObj(obj) || (typeof path !== 'string' && !pathIsArray)) {
 			return;
 		}
 
-		const pathArr = getPathSegments(path);
+		const pathArr = (pathIsArray) ? path : getPathSegments(path);
 
 		for (let i = 0; i < pathArr.length; i++) {
 			const p = pathArr[i];
@@ -74,11 +86,13 @@ module.exports = {
 	},
 
 	delete(obj, path) {
-		if (!isObj(obj) || typeof path !== 'string') {
+		const pathIsArray = isArr(path);
+
+		if (!isObj(obj) || (typeof path !== 'string' && !pathIsArray)) {
 			return;
 		}
 
-		const pathArr = getPathSegments(path);
+		const pathArr = (pathIsArray) ? path : getPathSegments(path);
 
 		for (let i = 0; i < pathArr.length; i++) {
 			const p = pathArr[i];
@@ -97,11 +111,13 @@ module.exports = {
 	},
 
 	has(obj, path) {
-		if (!isObj(obj) || typeof path !== 'string') {
+		const pathIsArray = isArr(path);
+
+		if (!isObj(obj) || (typeof path !== 'string' && !pathIsArray)) {
 			return false;
 		}
 
-		const pathArr = getPathSegments(path);
+		const pathArr = (pathIsArray) ? path : getPathSegments(path);
 
 		for (let i = 0; i < pathArr.length; i++) {
 			if (isObj(obj)) {
