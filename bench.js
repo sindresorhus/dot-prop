@@ -43,6 +43,11 @@ bench('get', () => {
 
 	m.get({'foo.baz': {bar: true}}, 'foo\\.baz.bar');
 	m.get({'fo.ob.az': {bar: true}}, 'fo\\.ob\\.az.bar');
+
+	m.get(null, 'foo.bar', false);
+	m.get('foo', 'foo.bar', false);
+	m.get([], 'foo.bar', false);
+	m.get(undefined, 'foo.bar', false);
 });
 
 bench('set', () => {

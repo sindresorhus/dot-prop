@@ -46,8 +46,10 @@ test('get', t => {
 	t.is(m.get({'foo.baz': {bar: true}}, 'foo\\.baz.bar'), true);
 	t.is(m.get({'fo.ob.az': {bar: true}}, 'fo\\.ob\\.az.bar'), true);
 
-	const f4 = null;
-	t.is(m.get(f4, 'foo.bar', false), false);
+	t.is(m.get(null, 'foo.bar', false), false);
+	t.is(m.get('foo', 'foo.bar', false), false);
+	t.is(m.get([], 'foo.bar', false), false);
+	t.is(m.get(undefined, 'foo.bar', false), false);
 });
 
 test('set', t => {
