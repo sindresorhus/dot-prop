@@ -22,7 +22,7 @@ function getPathSegments(path) {
 module.exports = {
 	get(obj, path, value) {
 		if (!isObj(obj) || typeof path !== 'string') {
-			return (value === undefined) ? obj : value;
+			return value === undefined ? obj : value;
 		}
 
 		const pathArr = getPathSegments(path);
