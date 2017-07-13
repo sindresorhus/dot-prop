@@ -56,8 +56,9 @@ test('set', t => {
 	const func = () => 'test';
 	let f1 = {};
 
-	m.set(f1, 'foo', 2);
+	const o1 = m.set(f1, 'foo', 2);
 	t.is(f1.foo, 2);
+	t.is(o1, f1);
 
 	f1 = {foo: {bar: 1}};
 	m.set(f1, 'foo.bar', 2);
@@ -105,6 +106,11 @@ test('set', t => {
 
 	m.set(f1, 'fo\\.ob\\.ar.baz', true);
 	t.is(f1['fo.ob.ar'].baz, true);
+
+	const f4 = 'noobject';
+	const o4 = m.set(f4, 'foo.bar', 2);
+	t.is(f4, 'noobject');
+	t.is(o4, f4);
 });
 
 test('delete', t => {
