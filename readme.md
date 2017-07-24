@@ -63,7 +63,8 @@ console.log(obj);
 
 ### get(obj, path, [defaultValue])
 
-### obj = set(obj, path, value)
+### set(obj, path, value)
+Returns the object.
 
 ### has(obj, path)
 
