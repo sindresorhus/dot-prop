@@ -34,8 +34,8 @@ dotProp.set(obj, 'foo.bar', 'b');
 console.log(obj);
 //=> {foo: {bar: 'b'}}
 
-const obj2 = dotProp.set(obj, 'foo.bar', 'c');
-console.log(obj2);
+const foo = dotProp.set({}, 'foo.bar', 'c');
+console.log(foo);
 //=> {foo: {bar: 'c'}}
 
 dotProp.set(obj, 'foo.baz', 'x');
