@@ -174,6 +174,8 @@ test('delete', t => {
 	const f3 = {foo: null};
 	m.delete(f3, 'foo.bar');
 	t.deepEqual(f3, {foo: null});
+
+	t.is(m.unset === m.delete, true);
 });
 
 test('has', t => {

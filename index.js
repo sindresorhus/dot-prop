@@ -19,7 +19,7 @@ function getPathSegments(path) {
 	return parts;
 }
 
-module.exports = {
+const dotProp = {
 	get(obj, path, value) {
 		if (!isObj(obj) || typeof path !== 'string') {
 			return value === undefined ? obj : value;
@@ -121,3 +121,5 @@ module.exports = {
 		return true;
 	}
 };
+
+module.exports = Object.assign(dotProp, {unset: dotProp.delete});

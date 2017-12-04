@@ -70,6 +70,7 @@ Returns the object.
 ### has(obj, path)
 
 ### delete(obj, path)
+ - alias: unset(obj, path)
 
 #### obj
 
