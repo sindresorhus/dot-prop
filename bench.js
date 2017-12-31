@@ -1,6 +1,6 @@
 'use strict';
 /* globals bench */
-const m = require('./');
+const m = require('.');
 
 bench('get', () => {
 	const f1 = {foo: {bar: 1}};

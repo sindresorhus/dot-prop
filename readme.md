@@ -6,7 +6,7 @@
 ## Install
 
 ```
-$ npm install --save dot-prop
+$ npm install dot-prop
 ```
 
 
@@ -15,7 +15,7 @@ $ npm install --save dot-prop
 ```js
 const dotProp = require('dot-prop');
 
-// getter
+// Getter
 dotProp.get({foo: {bar: 'unicorn'}}, 'foo.bar');
 //=> 'unicorn'
 
@@ -28,7 +28,7 @@ dotProp.get({foo: {bar: 'a'}}, 'foo.notDefined.deep', 'default value');
 dotProp.get({foo: {'dot.dot': 'unicorn'}}, 'foo.dot\\.dot');
 //=> 'unicorn'
 
-// setter
+// Setter
 const obj = {foo: {bar: 'a'}};
 dotProp.set(obj, 'foo.bar', 'b');
 console.log(obj);
@@ -42,11 +42,11 @@ dotProp.set(obj, 'foo.baz', 'x');
 console.log(obj);
 //=> {foo: {bar: 'b', baz: 'x'}}
 
-// has
+// Has
 dotProp.has({foo: {bar: 'unicorn'}}, 'foo.bar');
 //=> true
 
-// deleter
+// Deleter
 const obj = {foo: {bar: 'a'}};
 dotProp.delete(obj, 'foo.bar');
 console.log(obj);
