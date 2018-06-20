@@ -4,7 +4,7 @@ const Benchmark = require('benchmark');
 const m = require('.');
 let suite = new Benchmark.Suite();
 
-suite.add('get', function () {
+suite.add('get', () => {
 	const f1 = {foo: {bar: 1}};
 	m.get(f1);
 	f1[''] = 'foo';
@@ -51,7 +51,7 @@ suite.add('get', function () {
 	m.get([], 'foo.bar', false);
 	m.get(undefined, 'foo.bar', false);
 })
-.add('set', function () {
+.add('set', () => {
 	const func = () => 'test';
 	let f1 = {};
 
@@ -90,7 +90,7 @@ suite.add('get', function () {
 
 	m.set(f1, 'fo\\.ob\\.ar.baz', true);
 })
-.add('delete', function () {
+.add('delete', () => {
 	const func = () => 'test';
 	func.foo = 'bar';
 
@@ -135,7 +135,7 @@ suite.add('get', function () {
 	};
 	m.delete(f2, 'dotted.sub.dotted\\.prop');
 })
-.add('has', function () {
+.add('has', () => {
 	const f1 = {foo: {bar: 1}};
 	m.has(f1);
 	m.has(f1, 'foo');
@@ -156,10 +156,10 @@ suite.add('get', function () {
 	m.has({'foo.baz': {bar: true}}, 'foo\\.baz.bar');
 	m.has({'fo.ob.az': {bar: true}}, 'fo\\.ob\\.az.bar');
 })
-.on('cycle', function (event) {
+.on('cycle', (event) => {
 	console.log(String(event.target))
 })
-.on('complete', function () {
+.on('complete', () => {
 	console.log('Finished')
 })
 .run({ 'async': true })
