@@ -1,8 +1,10 @@
 'use strict';
 /* globals bench */
+const Benchmark = require('benchmark');
 const m = require('.');
+let suite = new Benchmark.Suite();
 
-bench('get', () => {
+suite.add('get', function () {
 	const f1 = {foo: {bar: 1}};
 	m.get(f1);
 	f1[''] = 'foo';
@@ -48,9 +50,8 @@ bench('get', () => {
 	m.get('foo', 'foo.bar', false);
 	m.get([], 'foo.bar', false);
 	m.get(undefined, 'foo.bar', false);
-});
-
-bench('set', () => {
+})
+.add('set', function () {
 	const func = () => 'test';
 	let f1 = {};
 
@@ -88,9 +89,8 @@ bench('set', () => {
 	m.set(f1, 'foo\\.bar.baz', true);
 
 	m.set(f1, 'fo\\.ob\\.ar.baz', true);
-});
-
-bench('delete', () => {
+})
+.add('delete', function () {
 	const func = () => 'test';
 	func.foo = 'bar';
 
@@ -134,9 +134,8 @@ bench('delete', () => {
 		}
 	};
 	m.delete(f2, 'dotted.sub.dotted\\.prop');
-});
-
-bench('has', () => {
+})
+.add('has', function () {
 	const f1 = {foo: {bar: 1}};
 	m.has(f1);
 	m.has(f1, 'foo');
@@ -156,4 +155,11 @@ bench('has', () => {
 
 	m.has({'foo.baz': {bar: true}}, 'foo\\.baz.bar');
 	m.has({'fo.ob.az': {bar: true}}, 'fo\\.ob\\.az.bar');
-});
+})
+.on('cycle', function (event) {
+	console.log(String(event.target))
+})
+.on('complete', function () {
+	console.log('Finished')
+})
+.run({ 'async': true })
