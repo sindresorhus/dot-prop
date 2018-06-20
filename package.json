@@ -13,7 +13,7 @@
 		"node": ">=4"
 	},
 	"scripts": {
-		"test": "xo && ava",
+		"test": "xo index.js && ava",
 		"bench": "node bench.js"
 	},
 	"files": [
