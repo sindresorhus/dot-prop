@@ -1,57 +1,57 @@
 'use strict';
-
 const Benchmark = require('benchmark');
 const m = require('.');
 
 const suite = new Benchmark.Suite();
 
-suite.add('get', () => {
-	const f1 = {foo: {bar: 1}};
-	m.get(f1);
-	f1[''] = 'foo';
-	m.get(f1, '');
-	m.get(f1, 'foo');
-	m.get({foo: 1}, 'foo');
-	m.get({foo: null}, 'foo');
-	m.get({foo: undefined}, 'foo');
-	m.get({foo: {bar: true}}, 'foo.bar');
-	m.get({foo: {bar: {baz: true}}}, 'foo.bar.baz');
-	m.get({foo: {bar: {baz: null}}}, 'foo.bar.baz');
-	m.get({foo: {bar: 'a'}}, 'foo.fake');
-	m.get({foo: {bar: 'a'}}, 'foo.fake.fake2');
-	m.get({'\\': true}, '\\');
-	m.get({'\\foo': true}, '\\foo');
-	m.get({'bar\\': true}, 'bar\\');
-	m.get({'foo\\bar': true}, 'foo\\bar');
-	m.get({'\\.foo': true}, '\\\\.foo');
-	m.get({'bar\\.': true}, 'bar\\\\.');
-	m.get({'foo\\.bar': true}, 'foo\\\\.bar');
+suite
+	.add('get', () => {
+		const f1 = {foo: {bar: 1}};
+		m.get(f1);
+		f1[''] = 'foo';
+		m.get(f1, '');
+		m.get(f1, 'foo');
+		m.get({foo: 1}, 'foo');
+		m.get({foo: null}, 'foo');
+		m.get({foo: undefined}, 'foo');
+		m.get({foo: {bar: true}}, 'foo.bar');
+		m.get({foo: {bar: {baz: true}}}, 'foo.bar.baz');
+		m.get({foo: {bar: {baz: null}}}, 'foo.bar.baz');
+		m.get({foo: {bar: 'a'}}, 'foo.fake');
+		m.get({foo: {bar: 'a'}}, 'foo.fake.fake2');
+		m.get({'\\': true}, '\\');
+		m.get({'\\foo': true}, '\\foo');
+		m.get({'bar\\': true}, 'bar\\');
+		m.get({'foo\\bar': true}, 'foo\\bar');
+		m.get({'\\.foo': true}, '\\\\.foo');
+		m.get({'bar\\.': true}, 'bar\\\\.');
+		m.get({'foo\\.bar': true}, 'foo\\\\.bar');
 
-	const f2 = {};
-	Object.defineProperty(f2, 'foo', {
-		value: 'bar',
-		enumerable: false
-	});
-	m.get(f2, 'foo');
-	m.get({}, 'hasOwnProperty');
+		const f2 = {};
+		Object.defineProperty(f2, 'foo', {
+			value: 'bar',
+			enumerable: false
+		});
+		m.get(f2, 'foo');
+		m.get({}, 'hasOwnProperty');
 
-	function fn() {}
-	fn.foo = {bar: 1};
-	m.get(fn);
-	m.get(fn, 'foo');
-	m.get(fn, 'foo.bar');
+		function fn() {}
+		fn.foo = {bar: 1};
+		m.get(fn);
+		m.get(fn, 'foo');
+		m.get(fn, 'foo.bar');
 
-	const f3 = {foo: null};
-	m.get(f3, 'foo.bar');
+		const f3 = {foo: null};
+		m.get(f3, 'foo.bar');
 
-	m.get({'foo.baz': {bar: true}}, 'foo\\.baz.bar');
-	m.get({'fo.ob.az': {bar: true}}, 'fo\\.ob\\.az.bar');
+		m.get({'foo.baz': {bar: true}}, 'foo\\.baz.bar');
+		m.get({'fo.ob.az': {bar: true}}, 'fo\\.ob\\.az.bar');
 
-	m.get(null, 'foo.bar', false);
-	m.get('foo', 'foo.bar', false);
-	m.get([], 'foo.bar', false);
-	m.get(undefined, 'foo.bar', false);
-})
+		m.get(null, 'foo.bar', false);
+		m.get('foo', 'foo.bar', false);
+		m.get([], 'foo.bar', false);
+		m.get(undefined, 'foo.bar', false);
+	})
 	.add('set', () => {
 		const func = () => 'test';
 		let f1 = {};
@@ -156,8 +156,11 @@ suite.add('get', () => {
 
 		m.has({'foo.baz': {bar: true}}, 'foo\\.baz.bar');
 		m.has({'fo.ob.az': {bar: true}}, 'fo\\.ob\\.az.bar');
-	}).on('cycle', event => {
+	})
+	.on('cycle', event => {
 		console.log(String(event.target));
-	}).on('complete', () => {
+	})
+	.on('complete', () => {
 		console.log('Finished');
-	}).run({async: true});
+	})
+	.run({async: true});
