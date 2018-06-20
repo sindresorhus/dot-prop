@@ -14,7 +14,7 @@
 	},
 	"scripts": {
 		"test": "xo && ava",
-		"bench": "matcha bench.js"
+		"bench": "node bench.js"
 	},
 	"files": [
 		"index.js"
@@ -39,7 +39,8 @@
 	},
 	"devDependencies": {
 		"ava": "*",
-		"matcha": "^0.7.0",
+		"benchmark": "^2.1.4",
+		"microtime": "^2.1.8",
 		"xo": "*"
 	}
 }
