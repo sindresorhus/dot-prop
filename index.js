@@ -120,7 +120,7 @@ module.exports = {
 
 		return true;
 	},
-	
+
 	empty(obj, path) {
 		if (!isObj(obj) || typeof path !== 'string') {
 			return true;
@@ -143,11 +143,11 @@ module.exports = {
 				break;
 			}
 		}
-		
+
 		if (isObj(obj)) {
-			return Object.keys(obj).length ? false : true;
+			return !Object.keys(obj).length > 0;
 		}
 
-		return obj ? false : true;
+		return !obj;
 	}
 };
