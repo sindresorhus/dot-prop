@@ -119,5 +119,35 @@ module.exports = {
 		}
 
 		return true;
+	},
+	
+	empty(obj, path) {
+		if (!isObj(obj) || typeof path !== 'string') {
+			return true;
+		}
+
+		const pathArr = getPathSegments(path);
+
+		for (let i = 0; i < pathArr.length; i++) {
+			if (!Object.prototype.propertyIsEnumerable.call(obj, pathArr[i])) {
+				return true;
+			}
+
+			obj = obj[pathArr[i]];
+
+			if (obj === undefined || obj === null) {
+				if (i !== pathArr.length - 1) {
+					return true;
+				}
+
+				break;
+			}
+		}
+		
+		if (isObj(obj)) {
+			return Object.keys(obj).length ? false : true;
+		}
+
+		return obj ? false : true;
 	}
 };
