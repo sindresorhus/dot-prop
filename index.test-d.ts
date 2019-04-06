@@ -10,8 +10,8 @@ expectType<unknown>(
 	dotProp.get({foo: {'dot.dot': 'unicorn'}}, 'foo.dot\\.dot')
 );
 
-const obj = {foo: {bar: 'a'}};
-expectType<typeof obj>(dotProp.set(obj, 'foo.bar', 'b'));
+const object = {foo: {bar: 'a'}};
+expectType<typeof object>(dotProp.set(object, 'foo.bar', 'b'));
 
 expectType<boolean>(dotProp.has({foo: {bar: 'unicorn'}}, 'foo.bar'));
 

@@ -29,17 +29,17 @@ dotProp.get({foo: {'dot.dot': 'unicorn'}}, 'foo.dot\\.dot');
 //=> 'unicorn'
 
 // Setter
-const obj = {foo: {bar: 'a'}};
-dotProp.set(obj, 'foo.bar', 'b');
-console.log(obj);
+const object = {foo: {bar: 'a'}};
+dotProp.set(object, 'foo.bar', 'b');
+console.log(object);
 //=> {foo: {bar: 'b'}}
 
 const foo = dotProp.set({}, 'foo.bar', 'c');
 console.log(foo);
 //=> {foo: {bar: 'c'}}
 
-dotProp.set(obj, 'foo.baz', 'x');
-console.log(obj);
+dotProp.set(object, 'foo.baz', 'x');
+console.log(object);
 //=> {foo: {bar: 'b', baz: 'x'}}
 
 // Has
@@ -47,31 +47,31 @@ dotProp.has({foo: {bar: 'unicorn'}}, 'foo.bar');
 //=> true
 
 // Deleter
-const obj = {foo: {bar: 'a'}};
-dotProp.delete(obj, 'foo.bar');
-console.log(obj);
+const object = {foo: {bar: 'a'}};
+dotProp.delete(object, 'foo.bar');
+console.log(object);
 //=> {foo: {}}
 
-obj.foo.bar = {x: 'y', y: 'x'};
-dotProp.delete(obj, 'foo.bar.x');
-console.log(obj);
+object.foo.bar = {x: 'y', y: 'x'};
+dotProp.delete(object, 'foo.bar.x');
+console.log(object);
 //=> {foo: {bar: {y: 'x'}}}
 ```
 
 
 ## API
 
-### get(obj, path, [defaultValue])
+### get(object, path, [defaultValue])
 
-### set(obj, path, value)
+### set(object, path, value)
 
 Returns the object.
 
-### has(obj, path)
+### has(object, path)
 
-### delete(obj, path)
+### delete(object, path)
 
-#### obj
+#### object
 
 Type: `Object`
 
@@ -87,13 +87,13 @@ Use `\\.` if you have a `.` in the key.
 
 #### value
 
-Type: `any`
+Type: `unknown`
 
 Value to set at `path`.
 
 #### defaultValue
 
-Type: `any`
+Type: `unknown`
 
 Default value.
 
