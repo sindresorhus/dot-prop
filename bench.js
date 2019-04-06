@@ -1,95 +1,95 @@
 'use strict';
 const Benchmark = require('benchmark');
-const m = require('.');
+const dotProp = require('.');
 
 const suite = new Benchmark.Suite();
 
 suite
 	.add('get', () => {
-		const f1 = {foo: {bar: 1}};
-		m.get(f1);
-		f1[''] = 'foo';
-		m.get(f1, '');
-		m.get(f1, 'foo');
-		m.get({foo: 1}, 'foo');
-		m.get({foo: null}, 'foo');
-		m.get({foo: undefined}, 'foo');
-		m.get({foo: {bar: true}}, 'foo.bar');
-		m.get({foo: {bar: {baz: true}}}, 'foo.bar.baz');
-		m.get({foo: {bar: {baz: null}}}, 'foo.bar.baz');
-		m.get({foo: {bar: 'a'}}, 'foo.fake');
-		m.get({foo: {bar: 'a'}}, 'foo.fake.fake2');
-		m.get({'\\': true}, '\\');
-		m.get({'\\foo': true}, '\\foo');
-		m.get({'bar\\': true}, 'bar\\');
-		m.get({'foo\\bar': true}, 'foo\\bar');
-		m.get({'\\.foo': true}, '\\\\.foo');
-		m.get({'bar\\.': true}, 'bar\\\\.');
-		m.get({'foo\\.bar': true}, 'foo\\\\.bar');
+		const fixture1 = {foo: {bar: 1}};
+		dotProp.get(fixture1);
+		fixture1[''] = 'foo';
+		dotProp.get(fixture1, '');
+		dotProp.get(fixture1, 'foo');
+		dotProp.get({foo: 1}, 'foo');
+		dotProp.get({foo: null}, 'foo');
+		dotProp.get({foo: undefined}, 'foo');
+		dotProp.get({foo: {bar: true}}, 'foo.bar');
+		dotProp.get({foo: {bar: {baz: true}}}, 'foo.bar.baz');
+		dotProp.get({foo: {bar: {baz: null}}}, 'foo.bar.baz');
+		dotProp.get({foo: {bar: 'a'}}, 'foo.fake');
+		dotProp.get({foo: {bar: 'a'}}, 'foo.fake.fake2');
+		dotProp.get({'\\': true}, '\\');
+		dotProp.get({'\\foo': true}, '\\foo');
+		dotProp.get({'bar\\': true}, 'bar\\');
+		dotProp.get({'foo\\bar': true}, 'foo\\bar');
+		dotProp.get({'\\.foo': true}, '\\\\.foo');
+		dotProp.get({'bar\\.': true}, 'bar\\\\.');
+		dotProp.get({'foo\\.bar': true}, 'foo\\\\.bar');
 
-		const f2 = {};
-		Object.defineProperty(f2, 'foo', {
+		const fixture2 = {};
+		Object.defineProperty(fixture2, 'foo', {
 			value: 'bar',
 			enumerable: false
 		});
-		m.get(f2, 'foo');
-		m.get({}, 'hasOwnProperty');
+		dotProp.get(fixture2, 'foo');
+		dotProp.get({}, 'hasOwnProperty');
 
 		function fn() {}
 		fn.foo = {bar: 1};
-		m.get(fn);
-		m.get(fn, 'foo');
-		m.get(fn, 'foo.bar');
+		dotProp.get(fn);
+		dotProp.get(fn, 'foo');
+		dotProp.get(fn, 'foo.bar');
 
-		const f3 = {foo: null};
-		m.get(f3, 'foo.bar');
+		const fixture3 = {foo: null};
+		dotProp.get(fixture3, 'foo.bar');
 
-		m.get({'foo.baz': {bar: true}}, 'foo\\.baz.bar');
-		m.get({'fo.ob.az': {bar: true}}, 'fo\\.ob\\.az.bar');
+		dotProp.get({'foo.baz': {bar: true}}, 'foo\\.baz.bar');
+		dotProp.get({'fo.ob.az': {bar: true}}, 'fo\\.ob\\.az.bar');
 
-		m.get(null, 'foo.bar', false);
-		m.get('foo', 'foo.bar', false);
-		m.get([], 'foo.bar', false);
-		m.get(undefined, 'foo.bar', false);
+		dotProp.get(null, 'foo.bar', false);
+		dotProp.get('foo', 'foo.bar', false);
+		dotProp.get([], 'foo.bar', false);
+		dotProp.get(undefined, 'foo.bar', false);
 	})
 	.add('set', () => {
 		const func = () => 'test';
-		let f1 = {};
+		let fixture1 = {};
 
-		m.set(f1, 'foo', 2);
+		dotProp.set(fixture1, 'foo', 2);
 
-		f1 = {foo: {bar: 1}};
-		m.set(f1, 'foo.bar', 2);
+		fixture1 = {foo: {bar: 1}};
+		dotProp.set(fixture1, 'foo.bar', 2);
 
-		m.set(f1, 'foo.bar.baz', 3);
+		dotProp.set(fixture1, 'foo.bar.baz', 3);
 
-		m.set(f1, 'foo.bar', 'test');
+		dotProp.set(fixture1, 'foo.bar', 'test');
 
-		m.set(f1, 'foo.bar', null);
+		dotProp.set(fixture1, 'foo.bar', null);
 
-		m.set(f1, 'foo.bar', false);
+		dotProp.set(fixture1, 'foo.bar', false);
 
-		m.set(f1, 'foo.bar', undefined);
+		dotProp.set(fixture1, 'foo.bar', undefined);
 
-		m.set(f1, 'foo.fake.fake2', 'fake');
+		dotProp.set(fixture1, 'foo.fake.fake2', 'fake');
 
-		m.set(f1, 'foo.function', func);
+		dotProp.set(fixture1, 'foo.function', func);
 
 		function fn() {}
-		m.set(fn, 'foo.bar', 1);
+		dotProp.set(fn, 'foo.bar', 1);
 
-		f1.fn = fn;
-		m.set(f1, 'fn.bar.baz', 2);
+		fixture1.fn = fn;
+		dotProp.set(fixture1, 'fn.bar.baz', 2);
 
-		const f2 = {foo: null};
-		m.set(f2, 'foo.bar', 2);
+		const fixture2 = {foo: null};
+		dotProp.set(fixture2, 'foo.bar', 2);
 
-		const f3 = {};
-		m.set(f3, '', 3);
+		const fixture3 = {};
+		dotProp.set(fixture3, '', 3);
 
-		m.set(f1, 'foo\\.bar.baz', true);
+		dotProp.set(fixture1, 'foo\\.bar.baz', true);
 
-		m.set(f1, 'fo\\.ob\\.ar.baz', true);
+		dotProp.set(fixture1, 'fo\\.ob\\.ar.baz', true);
 	})
 	.add('delete', () => {
 		const func = () => 'test';
@@ -102,7 +102,7 @@ suite
 			func
 		};
 
-		const f1 = {
+		const fixture1 = {
 			foo: {
 				bar: {
 					baz: inner
@@ -113,49 +113,49 @@ suite
 			}
 		};
 
-		m.delete(f1, 'foo.bar.baz.c');
+		dotProp.delete(fixture1, 'foo.bar.baz.c');
 
-		m.delete(f1, 'top');
+		dotProp.delete(fixture1, 'top');
 
-		m.delete(f1, 'foo.bar.baz.func.foo');
+		dotProp.delete(fixture1, 'foo.bar.baz.func.foo');
 
-		m.delete(f1, 'foo.bar.baz.func');
+		dotProp.delete(fixture1, 'foo.bar.baz.func');
 
-		m.set(f1, 'foo\\.bar.baz', true);
-		m.delete(f1, 'foo\\.bar.baz');
+		dotProp.set(fixture1, 'foo\\.bar.baz', true);
+		dotProp.delete(fixture1, 'foo\\.bar.baz');
 
-		const f2 = {};
-		m.set(f2, 'foo.bar\\.baz', true);
-		m.delete(f2, 'foo.bar\\.baz');
+		const fixture2 = {};
+		dotProp.set(fixture2, 'foo.bar\\.baz', true);
+		dotProp.delete(fixture2, 'foo.bar\\.baz');
 
-		f2.dotted = {
+		fixture2.dotted = {
 			sub: {
 				'dotted.prop': 'foo',
 				other: 'prop'
 			}
 		};
-		m.delete(f2, 'dotted.sub.dotted\\.prop');
+		dotProp.delete(fixture2, 'dotted.sub.dotted\\.prop');
 	})
 	.add('has', () => {
-		const f1 = {foo: {bar: 1}};
-		m.has(f1);
-		m.has(f1, 'foo');
-		m.has({foo: 1}, 'foo');
-		m.has({foo: null}, 'foo');
-		m.has({foo: undefined}, 'foo');
-		m.has({foo: {bar: true}}, 'foo.bar');
-		m.has({foo: {bar: {baz: true}}}, 'foo.bar.baz');
-		m.has({foo: {bar: {baz: null}}}, 'foo.bar.baz');
-		m.has({foo: {bar: 'a'}}, 'foo.fake.fake2');
+		const fixture1 = {foo: {bar: 1}};
+		dotProp.has(fixture1);
+		dotProp.has(fixture1, 'foo');
+		dotProp.has({foo: 1}, 'foo');
+		dotProp.has({foo: null}, 'foo');
+		dotProp.has({foo: undefined}, 'foo');
+		dotProp.has({foo: {bar: true}}, 'foo.bar');
+		dotProp.has({foo: {bar: {baz: true}}}, 'foo.bar.baz');
+		dotProp.has({foo: {bar: {baz: null}}}, 'foo.bar.baz');
+		dotProp.has({foo: {bar: 'a'}}, 'foo.fake.fake2');
 
 		function fn() {}
 		fn.foo = {bar: 1};
-		m.has(fn);
-		m.has(fn, 'foo');
-		m.has(fn, 'foo.bar');
+		dotProp.has(fn);
+		dotProp.has(fn, 'foo');
+		dotProp.has(fn, 'foo.bar');
 
-		m.has({'foo.baz': {bar: true}}, 'foo\\.baz.bar');
-		m.has({'fo.ob.az': {bar: true}}, 'fo\\.ob\\.az.bar');
+		dotProp.has({'foo.baz': {bar: true}}, 'foo\\.baz.bar');
+		dotProp.has({'fo.ob.az': {bar: true}}, 'fo\\.ob\\.az.bar');
 	})
 	.on('cycle', event => {
 		console.log(String(event.target));
