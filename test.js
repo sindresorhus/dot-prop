@@ -30,8 +30,8 @@ test('get', t => {
 		value: 'bar',
 		enumerable: false
 	});
-	t.is(dotProp.get(fixture2, 'foo'), undefined);
-	t.is(dotProp.get({}, 'hasOwnProperty'), undefined);
+	t.is(dotProp.get(fixture2, 'foo'), 'bar');
+	t.is(dotProp.get({}, 'hasOwnProperty'), Object.prototype.hasOwnProperty);
 
 	function fn() {}
 	fn.foo = {bar: 1};
@@ -50,6 +50,11 @@ test('get', t => {
 	t.false(dotProp.get('foo', 'foo.bar', false));
 	t.false(dotProp.get([], 'foo.bar', false));
 	t.false(dotProp.get(undefined, 'foo.bar', false));
+
+	class F4Class {}
+	F4Class.prototype.foo = 1;
+	const f4 = new F4Class();
+	t.is(dotProp.get(f4, 'foo'), 1); // #46
 });
 
 test('set', t => {

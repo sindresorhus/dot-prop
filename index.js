@@ -43,10 +43,6 @@ module.exports = {
 		}
 
 		for (let i = 0; i < pathArray.length; i++) {
-			if (!Object.prototype.propertyIsEnumerable.call(object, pathArray[i])) {
-				return value;
-			}
-
 			object = object[pathArray[i]];
 
 			if (object === undefined || object === null) {
