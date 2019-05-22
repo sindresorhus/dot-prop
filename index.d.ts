@@ -23,9 +23,14 @@ declare const dotProp: {
 	*/
 	get<T = unknown>(
 		object: {[key: string]: unknown},
-		path: string,
-		defaultValue?: T
+		path: string
 	): T | undefined;
+
+	get<T>(
+		object: {[key: string]: unknown},
+		path: string,
+		defaultValue: T
+	): T;
 
 	/**
 	@param object - Object to set the `path` value.
