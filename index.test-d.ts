@@ -2,6 +2,7 @@ import {expectType} from 'tsd';
 import dotProp = require('.');
 
 expectType<unknown>(dotProp.get({foo: {bar: 'unicorn'}}, 'foo.bar'));
+expectType<string | undefined>(dotProp.get<string>({foo: {bar: 'unicorn'}}, 'foo.bar'));
 expectType<unknown>(dotProp.get({foo: {bar: 'a'}}, 'foo.notDefined.deep'));
 expectType<string>(
 	dotProp.get({foo: {bar: 'a'}}, 'foo.notDefined.deep', 'default value')
