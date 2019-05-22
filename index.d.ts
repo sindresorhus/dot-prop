@@ -25,7 +25,7 @@ declare const dotProp: {
 		object: {[key: string]: unknown},
 		path: string,
 		defaultValue?: T
-	): T;
+	): T | undefined;
 
 	/**
 	@param object - Object to set the `path` value.
