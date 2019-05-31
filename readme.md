@@ -61,7 +61,7 @@ console.log(object);
 
 ## API
 
-### get(object, path, [defaultValue])
+### get(object, path, defaultValue?)
 
 ### set(object, path, value)
 
@@ -73,7 +73,7 @@ Returns the object.
 
 #### object
 
-Type: `Object`
+Type: `object`
 
 Object to get, set, or delete the `path` value.
 
@@ -98,6 +98,14 @@ Type: `unknown`
 Default value.
 
 
-## License
+---
 
-MIT © [Sindre Sorhus](https://sindresorhus.com)
+<div align="center">
+	<b>
+		<a href="https://tidelift.com/subscription/pkg/npm-dot-prop?utm_source=npm-dot-prop&utm_medium=referral&utm_campaign=readme">Get professional support for this package with a Tidelift subscription</a>
+	</b>
+	<br>
+	<sub>
+		Tidelift helps make open source sustainable for maintainers while giving companies<br>assurances about security, maintenance, and licensing for their dependencies.
+	</sub>
+</div>
