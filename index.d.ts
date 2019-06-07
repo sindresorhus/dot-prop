@@ -21,8 +21,8 @@ declare const dotProp: {
 	//=> 'unicorn'
 	```
 	*/
-	get<T = unknown>(
-		object: {[key: string]: unknown},
+	get<T>(
+		object: {[key: string]: any},
 		path: string,
 		defaultValue?: T
 	): T;
@@ -50,7 +50,7 @@ declare const dotProp: {
 	//=> {foo: {bar: 'b', baz: 'x'}}
 	```
 	*/
-	set<T extends {[key: string]: unknown}>(
+	set<T extends {[key: string]: any}>(
 		object: T,
 		path: string,
 		value: unknown
@@ -68,10 +68,10 @@ declare const dotProp: {
 	//=> true
 	```
 	*/
-	has(object: {[key: string]: unknown}, path: string): boolean;
+	has(object: {[key: string]: any}, path: string): boolean;
 
 	/**
-	@param object Object to delete the `path` value.
+	@param object - Object to delete the `path` value.
 	@param path - Path of the property in the object, using `.` to separate each nested key. Use `\\.` if you have a `.` in the key.
 
 	@example
@@ -89,7 +89,7 @@ declare const dotProp: {
 	//=> {foo: {bar: {y: 'x'}}}
 	```
 	*/
-	delete(object: {[key: string]: unknown}, path: string): void;
+	delete(object: {[key: string]: any}, path: string): void;
 };
 
 export = dotProp;
