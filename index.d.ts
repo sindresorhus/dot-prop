@@ -21,13 +21,12 @@ declare const dotProp: {
 	//=> 'unicorn'
 	```
 	*/
-	get<T = unknown>(
-		object: {[key: string]: unknown},
+	get<T>(
+		object: {[key: string]: any},
 		path: string
 	): T | undefined;
-
 	get<T>(
-		object: {[key: string]: unknown},
+		object: {[key: string]: any},
 		path: string,
 		defaultValue: T
 	): T;
