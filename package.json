@@ -34,10 +34,10 @@
 		"dotty"
 	],
 	"dependencies": {
-		"is-obj": "^1.0.0"
+		"is-obj": "^2.0.0"
 	},
 	"devDependencies": {
-		"ava": "^1.4.1",
+		"ava": "^2.1.0",
 		"benchmark": "^2.1.4",
 		"tsd": "^0.7.2",
 		"xo": "^0.24.0"
