@@ -23,8 +23,12 @@ declare const dotProp: {
 	*/
 	get<T>(
 		object: {[key: string]: any},
+		path: string
+	): T | undefined;
+	get<T>(
+		object: {[key: string]: any},
 		path: string,
-		defaultValue?: T
+		defaultValue: T
 	): T;
 
 	/**
