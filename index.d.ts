@@ -25,8 +25,7 @@ declare const dotProp: {
 		object: {[key: string]: any},
 		path: string
 	): T | undefined;
-
-  get<T>(
+	get<T>(
 		object: {[key: string]: any},
 		path: string,
 		defaultValue: T
