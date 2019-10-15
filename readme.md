@@ -25,6 +25,9 @@ dotProp.get({foo: {bar: 'a'}}, 'foo.notDefined.deep');
 dotProp.get({foo: {bar: 'a'}}, 'foo.notDefined.deep', 'default value');
 //=> 'default value'
 
+dotProp.get({foo: [ {bar: 'a'} ]}, 'foo.0.bar', 'a');
+//=> 'default value'
+
 dotProp.get({foo: {'dot.dot': 'unicorn'}}, 'foo.dot\\.dot');
 //=> 'unicorn'
 
