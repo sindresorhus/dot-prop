@@ -199,3 +199,10 @@ test('has', t => {
 	t.is(dotProp.has({'foo.baz': {bar: true}}, 'foo\\.baz.bar'), true);
 	t.is(dotProp.has({'fo.ob.az': {bar: true}}, 'fo\\.ob\\.az.bar'), true);
 });
+
+test('prevent setting/getting `__proto__`', t => {
+	dotProp.set({}, '__proto__.unicorn', '🦄');
+	t.not({}.unicorn, '🦄'); // eslint-disable-line no-use-extend-native/no-use-extend-native
+
+	t.is(dotProp.get({}, '__proto__'), undefined);
+});
