@@ -22,11 +22,11 @@ declare const dotProp: {
 	```
 	*/
 	get<T>(
-		object: {[key: string]: any},
+		object: {[key: string]: any} | undefined,
 		path: string
 	): T | undefined;
 	get<T>(
-		object: {[key: string]: any},
+		object: {[key: string]: any} | undefined,
 		path: string,
 		defaultValue: T
 	): T;
@@ -72,7 +72,7 @@ declare const dotProp: {
 	//=> true
 	```
 	*/
-	has(object: {[key: string]: any}, path: string): boolean;
+	has(object: {[key: string]: any} | undefined, path: string): boolean;
 
 	/**
 	@param object - Object to delete the `path` value.
