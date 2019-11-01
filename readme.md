@@ -77,6 +77,8 @@ Type: `object`
 
 Object to get, set, or delete the `path` value.
 
+You are allowed to pass in `undefined` as the object to the `get` and `has` functions.
+
 #### path
 
 Type: `string`
