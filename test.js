@@ -198,6 +198,7 @@ test('has', t => {
 
 	t.is(dotProp.has({'foo.baz': {bar: true}}, 'foo\\.baz.bar'), true);
 	t.is(dotProp.has({'fo.ob.az': {bar: true}}, 'fo\\.ob\\.az.bar'), true);
+	t.is(dotProp.has(undefined, 'fo\\.ob\\.az.bar'), false);
 });
 
 test('prevent setting/getting `__proto__`', t => {

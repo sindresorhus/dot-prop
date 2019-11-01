@@ -124,6 +124,7 @@ module.exports = {
 			return false;
 		}
 
+		// eslint-disable-next-line unicorn/no-for-loop
 		for (let i = 0; i < pathArray.length; i++) {
 			if (isObj(object)) {
 				if (!(pathArray[i] in object)) {
