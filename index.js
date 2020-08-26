@@ -113,7 +113,7 @@ module.exports = {
 			}
 		}
 
-		return object
+		return object;
 	},
 
 	has(object, path) {
