@@ -71,6 +71,8 @@ Returns the object.
 
 ### delete(object, path)
 
+Returns the object.
+
 #### object
 
 Type: `object`

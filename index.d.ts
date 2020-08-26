@@ -93,7 +93,10 @@ declare const dotProp: {
 	//=> {foo: {bar: {y: 'x'}}}
 	```
 	*/
-	delete(object: {[key: string]: any}, path: string): void;
+	delete<T extends {[key: string]: any}>(
+		object: T,
+		path: string
+	): T;
 };
 
 export = dotProp;

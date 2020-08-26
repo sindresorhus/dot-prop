@@ -112,6 +112,8 @@ module.exports = {
 				return;
 			}
 		}
+
+		return object
 	},
 
 	has(object, path) {
