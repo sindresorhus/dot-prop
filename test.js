@@ -187,7 +187,7 @@ test('has', t => {
 	t.true(dotProp.has({foo: {bar: {baz: true}}}, 'foo.bar.baz'));
 	t.true(dotProp.has({foo: {bar: {baz: null}}}, 'foo.bar.baz'));
 	t.false(dotProp.has({foo: {bar: 'a'}}, 'foo.fake.fake2'));
-	t.false(dotProp.has({foo: null}, 'foo.bar'),);
+	t.false(dotProp.has({foo: null}, 'foo.bar'));
 	t.false(dotProp.has({foo: ''}, 'foo.bar'));
 
 	function fn() {}
