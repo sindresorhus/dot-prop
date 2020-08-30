@@ -103,13 +103,13 @@ module.exports = {
 
 			if (i === pathArray.length - 1) {
 				delete object[p];
-				return;
+				return true;
 			}
 
 			object = object[p];
 
 			if (!isObj(object)) {
-				return;
+				return false;
 			}
 		}
 
