@@ -43,13 +43,13 @@ test('get', t => {
 	t.is(dotProp.get(f3, 'foo.bar'), undefined);
 	t.is(dotProp.get(f3, 'foo.bar', 'some value'), 'some value');
 
-	t.is(dotProp.get({'foo.baz': {bar: true}}, 'foo\\.baz.bar'), true);
-	t.is(dotProp.get({'fo.ob.az': {bar: true}}, 'fo\\.ob\\.az.bar'), true);
+	t.true(dotProp.get({'foo.baz': {bar: true}}, 'foo\\.baz.bar'));
+	t.true(dotProp.get({'fo.ob.az': {bar: true}}, 'fo\\.ob\\.az.bar'));
 
-	t.is(dotProp.get(null, 'foo.bar', false), false);
-	t.is(dotProp.get('foo', 'foo.bar', false), false);
-	t.is(dotProp.get([], 'foo.bar', false), false);
-	t.is(dotProp.get(undefined, 'foo.bar', false), false);
+	t.false(dotProp.get(null, 'foo.bar', false));
+	t.false(dotProp.get('foo', 'foo.bar', false));
+	t.false(dotProp.get([], 'foo.bar', false));
+	t.false(dotProp.get(undefined, 'foo.bar', false));
 });
 
 test('set', t => {
@@ -105,7 +105,7 @@ test('set', t => {
 	t.is(fixture1['foo.bar'].baz, true);
 
 	dotProp.set(fixture1, 'fo\\.ob\\.ar.baz', true);
-	t.is(fixture1['fo.ob.ar'].baz, true);
+	t.true(fixture1['fo.ob.ar'].baz);
 
 	const fixture4 = 'noobject';
 	const output4 = dotProp.set(fixture4, 'foo.bar', 2);
@@ -151,13 +151,13 @@ test('delete', t => {
 	t.is(fixture1.foo.bar.baz.func, undefined);
 
 	dotProp.set(fixture1, 'foo\\.bar.baz', true);
-	t.is(fixture1['foo.bar'].baz, true);
+	t.true(fixture1['foo.bar'].baz);
 	dotProp.delete(fixture1, 'foo\\.bar.baz');
 	t.is(fixture1['foo.bar'].baz, undefined);
 
 	const fixture2 = {};
 	dotProp.set(fixture2, 'foo.bar\\.baz', true);
-	t.is(fixture2.foo['bar.baz'], true);
+	t.true(fixture2.foo['bar.baz']);
 	dotProp.delete(fixture2, 'foo.bar\\.baz');
 	t.is(fixture2.foo['bar.baz'], undefined);
 
@@ -178,27 +178,27 @@ test('delete', t => {
 
 test('has', t => {
 	const fixture1 = {foo: {bar: 1}};
-	t.is(dotProp.has(fixture1), false);
-	t.is(dotProp.has(fixture1, 'foo'), true);
-	t.is(dotProp.has({foo: 1}, 'foo'), true);
-	t.is(dotProp.has({foo: null}, 'foo'), true);
-	t.is(dotProp.has({foo: undefined}, 'foo'), true);
-	t.is(dotProp.has({foo: {bar: true}}, 'foo.bar'), true);
-	t.is(dotProp.has({foo: {bar: {baz: true}}}, 'foo.bar.baz'), true);
-	t.is(dotProp.has({foo: {bar: {baz: null}}}, 'foo.bar.baz'), true);
-	t.is(dotProp.has({foo: {bar: 'a'}}, 'foo.fake.fake2'), false);
-	t.is(dotProp.has({foo: null}, 'foo.bar'), false);
-	t.is(dotProp.has({foo: ''}, 'foo.bar'), false);
+	t.false(dotProp.has(fixture1));
+	t.true(dotProp.has(fixture1, 'foo'));
+	t.true(dotProp.has({foo: 1}, 'foo'));
+	t.true(dotProp.has({foo: null}, 'foo'));
+	t.true(dotProp.has({foo: undefined}, 'foo'));
+	t.true(dotProp.has({foo: {bar: true}}, 'foo.bar'));
+	t.true(dotProp.has({foo: {bar: {baz: true}}}, 'foo.bar.baz'));
+	t.true(dotProp.has({foo: {bar: {baz: null}}}, 'foo.bar.baz'));
+	t.false(dotProp.has({foo: {bar: 'a'}}, 'foo.fake.fake2'));
+	t.false(dotProp.has({foo: null}, 'foo.bar'));
+	t.false(dotProp.has({foo: ''}, 'foo.bar'));
 
 	function fn() {}
 	fn.foo = {bar: 1};
-	t.is(dotProp.has(fn), false);
-	t.is(dotProp.has(fn, 'foo'), true);
-	t.is(dotProp.has(fn, 'foo.bar'), true);
+	t.false(dotProp.has(fn));
+	t.true(dotProp.has(fn, 'foo'));
+	t.true(dotProp.has(fn, 'foo.bar'));
 
-	t.is(dotProp.has({'foo.baz': {bar: true}}, 'foo\\.baz.bar'), true);
-	t.is(dotProp.has({'fo.ob.az': {bar: true}}, 'fo\\.ob\\.az.bar'), true);
-	t.is(dotProp.has(undefined, 'fo\\.ob\\.az.bar'), false);
+	t.true(dotProp.has({'foo.baz': {bar: true}}, 'foo\\.baz.bar'));
+	t.true(dotProp.has({'fo.ob.az': {bar: true}}, 'fo\\.ob\\.az.bar'));
+	t.false(dotProp.has(undefined, 'fo\\.ob\\.az.bar'));
 });
 
 test('prevent setting/getting `__proto__`', t => {
