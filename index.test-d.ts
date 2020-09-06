@@ -16,4 +16,4 @@ expectType<typeof object>(dotProp.set(object, 'foo.bar', 'b'));
 
 expectType<boolean>(dotProp.has({foo: {bar: 'unicorn'}}, 'foo.bar'));
 
-expectType<void>(dotProp.delete({foo: {bar: 'a'}}, 'foo.bar'));
+expectType<boolean>(dotProp.delete({foo: {bar: 'a'}}, 'foo.bar'));

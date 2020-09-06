@@ -135,30 +135,30 @@ test('delete', t => {
 	};
 
 	t.is(fixture1.foo.bar.baz.c, 'c');
-	dotProp.delete(fixture1, 'foo.bar.baz.c');
+	t.true(dotProp.delete(fixture1, 'foo.bar.baz.c'));
 	t.is(fixture1.foo.bar.baz.c, undefined);
 
 	t.is(fixture1.top.dog, 'sindre');
-	dotProp.delete(fixture1, 'top');
+	t.true(dotProp.delete(fixture1, 'top'));
 	t.is(fixture1.top, undefined);
 
 	t.is(fixture1.foo.bar.baz.func.foo, 'bar');
-	dotProp.delete(fixture1, 'foo.bar.baz.func.foo');
+	t.true(dotProp.delete(fixture1, 'foo.bar.baz.func.foo'));
 	t.is(fixture1.foo.bar.baz.func.foo, undefined);
 
 	t.is(fixture1.foo.bar.baz.func, func);
-	dotProp.delete(fixture1, 'foo.bar.baz.func');
+	t.true(dotProp.delete(fixture1, 'foo.bar.baz.func'));
 	t.is(fixture1.foo.bar.baz.func, undefined);
 
 	dotProp.set(fixture1, 'foo\\.bar.baz', true);
 	t.true(fixture1['foo.bar'].baz);
-	dotProp.delete(fixture1, 'foo\\.bar.baz');
+	t.true(dotProp.delete(fixture1, 'foo\\.bar.baz'));
 	t.is(fixture1['foo.bar'].baz, undefined);
 
 	const fixture2 = {};
 	dotProp.set(fixture2, 'foo.bar\\.baz', true);
 	t.true(fixture2.foo['bar.baz']);
-	dotProp.delete(fixture2, 'foo.bar\\.baz');
+	t.true(dotProp.delete(fixture2, 'foo.bar\\.baz'));
 	t.is(fixture2.foo['bar.baz'], undefined);
 
 	fixture2.dotted = {
@@ -167,12 +167,12 @@ test('delete', t => {
 			other: 'prop'
 		}
 	};
-	dotProp.delete(fixture2, 'dotted.sub.dotted\\.prop');
+	t.true(dotProp.delete(fixture2, 'dotted.sub.dotted\\.prop'));
 	t.is(fixture2.dotted.sub['dotted.prop'], undefined);
 	t.is(fixture2.dotted.sub.other, 'prop');
 
 	const fixture3 = {foo: null};
-	dotProp.delete(fixture3, 'foo.bar');
+	t.false(dotProp.delete(fixture3, 'foo.bar'));
 	t.deepEqual(fixture3, {foo: null});
 });
 
