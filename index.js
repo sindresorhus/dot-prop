@@ -93,7 +93,7 @@ module.exports = {
 
 	delete(object, path) {
 		if (!isObj(object) || typeof path !== 'string') {
-			return;
+			return false;
 		}
 
 		const pathArray = getPathSegments(path);
