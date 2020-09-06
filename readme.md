@@ -71,7 +71,7 @@ Returns the object.
 
 ### delete(object, path)
 
-Returns whether the value had existed.
+Returns a boolean of whether the property existed before being deleted.
 
 #### object
 
