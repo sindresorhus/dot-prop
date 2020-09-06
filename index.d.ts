@@ -35,7 +35,7 @@ declare const dotProp: {
 	@param object - Object to set the `path` value.
 	@param path - Path of the property in the object, using `.` to separate each nested key. Use `\\.` if you have a `.` in the key.
 	@param value - Value to set at `path`.
-	@returns The modified object.
+	@returns The object.
 
 	@example
 	```
