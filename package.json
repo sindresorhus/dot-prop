@@ -4,13 +4,14 @@
 	"description": "Get, set, or delete a property from a nested object using a dot path",
 	"license": "MIT",
 	"repository": "sindresorhus/dot-prop",
+	"funding": "https://github.com/sponsors/sindresorhus",
 	"author": {
 		"name": "Sindre Sorhus",
 		"email": "sindresorhus@gmail.com",
-		"url": "sindresorhus.com"
+		"url": "https://sindresorhus.com"
 	},
 	"engines": {
-		"node": ">=8"
+		"node": ">=10"
 	},
 	"scripts": {
 		"test": "xo && ava && tsd",
@@ -39,7 +40,12 @@
 	"devDependencies": {
 		"ava": "^2.1.0",
 		"benchmark": "^2.1.4",
-		"tsd": "^0.7.2",
-		"xo": "^0.25.3"
+		"tsd": "^0.13.1",
+		"xo": "^0.33.1"
+	},
+	"xo": {
+		"rules": {
+			"@typescript-eslint/method-signature-style": "off"
+		}
 	}
 }

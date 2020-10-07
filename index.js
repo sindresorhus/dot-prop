@@ -1,13 +1,13 @@
 'use strict';
 const isObj = require('is-obj');
 
-const disallowedKeys = [
+const disallowedKeys = new Set([
 	'__proto__',
 	'prototype',
 	'constructor'
-];
+]);
 
-const isValidPath = pathSegments => !pathSegments.some(segment => disallowedKeys.includes(segment));
+const isValidPath = pathSegments => !pathSegments.some(segment => disallowedKeys.has(segment));
 
 function getPathSegments(path) {
 	const pathArray = path.split('.');

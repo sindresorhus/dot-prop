@@ -1,14 +1,12 @@
-# dot-prop [![Build Status](https://travis-ci.org/sindresorhus/dot-prop.svg?branch=master)](https://travis-ci.org/sindresorhus/dot-prop)
+# dot-prop [![Build Status](https://travis-ci.com/sindresorhus/dot-prop.svg?branch=master)](https://travis-ci.com/github/sindresorhus/dot-prop)
 
 > Get, set, or delete a property from a nested object using a dot path
-
 
 ## Install
 
 ```
 $ npm install dot-prop
 ```
-
 
 ## Usage
 
@@ -58,18 +56,29 @@ console.log(object);
 //=> {foo: {bar: {y: 'x'}}}
 ```
 
-
 ## API
 
 ### get(object, path, defaultValue?)
 
+Get the value of the property at the given path.
+
+Returns the value if any.
+
 ### set(object, path, value)
+
+Set the property at the given path to the given value.
 
 Returns the object.
 
 ### has(object, path)
 
+Check whether the property at the given path exists.
+
+Returns a boolean.
+
 ### delete(object, path)
+
+Delete the property at the given path.
 
 Returns a boolean of whether the property existed before being deleted.
 
@@ -102,7 +111,6 @@ Value to set at `path`.
 Type: `unknown`
 
 Default value.
-
 
 ---
 
