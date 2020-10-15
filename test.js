@@ -51,6 +51,9 @@ test('get', t => {
 	t.false(dotProp.get([], 'foo.bar', false));
 	t.false(dotProp.get(undefined, 'foo.bar', false));
 
+	t.is(dotProp.get({foo: []}, 'foo.0.fizz', 'baz'), 'baz');
+	t.is(dotProp.get({foo: ['bar']}, 'foo.1', 'baz'), 'baz');
+
 	class F4Class {}
 	F4Class.prototype.foo = 1;
 	const f4 = new F4Class();
