@@ -10,6 +10,10 @@ const disallowedKeys = new Set([
 const isValidPath = pathSegments => !pathSegments.some(segment => disallowedKeys.has(segment));
 
 function getPathSegments(path) {
+	// Convert brackets in a path string to dot notation.
+	// e.g., 'a.b[3].c' becomes 'a.b.3.c'
+	path = path.replace(/\[(\d+)]/g, '.$1');
+
 	const pathArray = path.split('.');
 	const parts = [];
 

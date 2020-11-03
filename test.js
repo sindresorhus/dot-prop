@@ -55,6 +55,10 @@ test('get', t => {
 	F4Class.prototype.foo = 1;
 	const f4 = new F4Class();
 	t.is(dotProp.get(f4, 'foo'), 1); // #46
+
+	const fixture3 = {a: [{b: 'cool'}]};
+	t.is(dotProp.get(fixture3, 'a[0].b'), 'cool');
+	t.is(dotProp.get(fixture3, 'a[1].b', 'defaultVal'), 'defaultVal');
 });
 
 test('set', t => {
