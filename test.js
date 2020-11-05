@@ -59,6 +59,9 @@ test('get', t => {
 	const fixture3 = {a: [{b: 'cool'}]};
 	t.is(dotProp.get(fixture3, 'a[0].b'), 'cool');
 	t.is(dotProp.get(fixture3, 'a[1].b', 'defaultVal'), 'defaultVal');
+	t.is(dotProp.get(fixture3, 'a[0].nonexistant'), undefined);
+	t.is(dotProp.get(fixture3, 'a[1].nonexistant'), undefined);
+	t.is(dotProp.get(fixture3, 'a[1].nonexistant', 'defaultVal3'), 'defaultVal3');
 });
 
 test('set', t => {
