@@ -26,6 +26,9 @@ dotProp.get({foo: {bar: 'a'}}, 'foo.notDefined.deep', 'default value');
 dotProp.get({foo: {'dot.dot': 'unicorn'}}, 'foo.dot\\.dot');
 //=> 'unicorn'
 
+dotProp.get({biz: [ {baz: 'c'}, {baz: 'd'}]}, 'biz[1].baz');
+//=> 'd'
+
 // Setter
 const object = {foo: {bar: 'a'}};
 dotProp.set(object, 'foo.bar', 'b');
