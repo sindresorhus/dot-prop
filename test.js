@@ -16,6 +16,7 @@ test('get', t => {
 	t.is(dotProp.get({foo: {bar: 'a'}}, 'foo.fake'), undefined);
 	t.is(dotProp.get({foo: {bar: 'a'}}, 'foo.fake.fake2'), undefined);
 	t.is(dotProp.get({foo: {bar: 'a'}}, 'foo.fake.fake2', 'some value'), 'some value');
+	t.is(dotProp.get({foo: {}}, 'foo.fake', 'some value'), 'some value');
 	t.is(dotProp.get({'\\': true}, '\\'), true);
 	t.is(dotProp.get({'\\foo': true}, '\\foo'), true);
 	t.is(dotProp.get({'bar\\': true}, 'bar\\'), true);
