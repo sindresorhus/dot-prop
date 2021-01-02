@@ -1,4 +1,4 @@
-# dot-prop [![Build Status](https://travis-ci.com/sindresorhus/dot-prop.svg?branch=master)](https://travis-ci.com/github/sindresorhus/dot-prop)
+# dot-prop
 
 > Get, set, or delete a property from a nested object using a dot path
 
