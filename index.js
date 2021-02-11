@@ -1,5 +1,5 @@
 'use strict';
-const isObj = require('is-obj');
+const isObject = require('is-obj');
 
 const disallowedKeys = new Set([
 	'__proto__',
@@ -33,7 +33,7 @@ function getPathSegments(path) {
 
 module.exports = {
 	get(object, path, value) {
-		if (!isObj(object) || typeof path !== 'string') {
+		if (!isObject(object) || typeof path !== 'string') {
 			return value === undefined ? object : value;
 		}
 
@@ -63,7 +63,7 @@ module.exports = {
 	},
 
 	set(object, path, value) {
-		if (!isObj(object) || typeof path !== 'string') {
+		if (!isObject(object) || typeof path !== 'string') {
 			return object;
 		}
 
@@ -73,7 +73,7 @@ module.exports = {
 		for (let i = 0; i < pathArray.length; i++) {
 			const p = pathArray[i];
 
-			if (!isObj(object[p])) {
+			if (!isObject(object[p])) {
 				object[p] = {};
 			}
 
@@ -88,7 +88,7 @@ module.exports = {
 	},
 
 	delete(object, path) {
-		if (!isObj(object) || typeof path !== 'string') {
+		if (!isObject(object) || typeof path !== 'string') {
 			return false;
 		}
 
@@ -104,14 +104,14 @@ module.exports = {
 
 			object = object[p];
 
-			if (!isObj(object)) {
+			if (!isObject(object)) {
 				return false;
 			}
 		}
 	},
 
 	has(object, path) {
-		if (!isObj(object) || typeof path !== 'string') {
+		if (!isObject(object) || typeof path !== 'string') {
 			return false;
 		}
 
@@ -122,7 +122,7 @@ module.exports = {
 
 		// eslint-disable-next-line unicorn/no-for-loop
 		for (let i = 0; i < pathArray.length; i++) {
-			if (isObj(object)) {
+			if (isObject(object)) {
 				if (!(pathArray[i] in object)) {
 					return false;
 				}
