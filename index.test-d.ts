@@ -9,7 +9,6 @@ expectAssignable<string>(
 expectType<string>(
 	dotProp.get({foo: {'dot.dot': 'unicorn'}}, 'foo.dot\\.dot')
 );
-expectType<string>(dotProp.get(['a', 'b', 'c'], '0'));
 
 const object = {foo: {bar: 'a'}};
 expectType<typeof object>(dotProp.set(object, 'foo.bar', 'b'));
