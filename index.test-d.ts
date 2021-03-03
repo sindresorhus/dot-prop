@@ -1,15 +1,15 @@
 import {expectType, expectAssignable} from 'tsd';
 import dotProp = require('.');
 
-expectType<unknown>(dotProp.get({foo: {bar: 'unicorn'}}, 'foo.bar'));
-expectType<string | undefined>(dotProp.get<string>({foo: {bar: 'unicorn'}}, 'foo.bar'));
-expectType<unknown>(dotProp.get({foo: {bar: 'a'}}, 'foo.notDefined.deep'));
+expectType<string>(dotProp.get({foo: {bar: 'unicorn'}}, 'foo.bar'));
+expectType<undefined>(dotProp.get({foo: {bar: 'a'}}, 'foo.notDefined.deep'));
 expectAssignable<string>(
 	dotProp.get({foo: {bar: 'a'}}, 'foo.notDefined.deep', 'default value')
 );
-expectType<unknown>(
+expectType<string>(
 	dotProp.get({foo: {'dot.dot': 'unicorn'}}, 'foo.dot\\.dot')
 );
+expectType<string>(dotProp.get(['a', 'b', 'c'], '0'));
 
 const object = {foo: {bar: 'a'}};
 expectType<typeof object>(dotProp.set(object, 'foo.bar', 'b'));
