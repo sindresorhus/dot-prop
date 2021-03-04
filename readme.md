@@ -43,9 +43,9 @@ dotProp.set(object, 'foo.baz', 'x');
 console.log(object);
 //=> {foo: {bar: 'b', baz: 'x'}}
 
-dotProp.set(object, 'foo.bar.0', 'a');
+dotProp.set(object, 'foo.biz.0', 'a');
 console.log(object);
-//=> {foo: {bar: ['a']}}
+//=> {foo: {bar: 'b', baz: 'x', biz: ['a']}}
 
 // Has
 dotProp.has({foo: {bar: 'unicorn'}}, 'foo.bar');
