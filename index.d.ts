@@ -61,9 +61,9 @@ declare const dotProp: {
 	console.log(object);
 	//=> {foo: {bar: 'b', baz: 'x'}}
 
-	dotProp.set(object, 'foo.bar.0', 'a');
+	dotProp.set(object, 'foo.biz.0', 'a');
 	console.log(object);
-	//=> {foo: {bar: ['a']}}
+	//=> {foo: {bar: 'b', baz: 'x', biz: ['a']}}
 	```
 	*/
 	set<T extends {[key: string]: any}>(
