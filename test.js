@@ -26,6 +26,22 @@ test('get', t => {
 	t.is(dotProp.get({'foo\\.bar': true}, 'foo\\\\.bar'), true);
 	t.is(dotProp.get({foo: 1}, 'foo.bar'), undefined);
 
+	t.true(dotProp.get([true, false, false], '0'));
+	t.true(dotProp.get([{foo: [true]}], '0.foo.0'));
+	t.true(dotProp.get({foo: [0, {bar: true}]}, 'foo.1.bar'));
+
+	t.false(dotProp.get(['a', 'b', 'c'], '3', false));
+	t.false(dotProp.get([{foo: [1]}], '0.bar.0', false));
+	t.false(dotProp.get([{foo: [1]}], '0.foo.1', false));
+	t.false(dotProp.get({foo: [0, {bar: 2}]}, 'foo.0.bar', false));
+	t.false(dotProp.get({foo: [0, {bar: 2}]}, 'foo.2.bar', false));
+	t.false(dotProp.get({foo: [0, {bar: 2}]}, 'foo.1.biz', false));
+	t.false(dotProp.get({foo: [0, {bar: 2}]}, 'bar.0.bar', false));
+
+	t.false(dotProp.get([], 'foo.0.bar', false));
+	t.true(dotProp.get({foo: [{bar: true}]}, 'foo.0.bar'));
+	t.false(dotProp.get({foo: ['bar']}, 'foo.1', false));
+
 	const fixture2 = {};
 	Object.defineProperty(fixture2, 'foo', {
 		value: 'bar',
@@ -117,6 +133,24 @@ test('set', t => {
 	const output4 = dotProp.set(fixture4, 'foo.bar', 2);
 	t.is(fixture4, 'noobject');
 	t.is(output4, fixture4);
+
+	const fixture5 = [];
+
+	dotProp.set(fixture5, '1', true);
+	t.true(fixture5[1]);
+
+	dotProp.set(fixture5, '0.foo.0', true);
+	t.true(fixture5[0].foo[0]);
+
+	const fixture6 = {};
+
+	dotProp.set(fixture6, 'foo.0.bar', true);
+	t.true(fixture6.foo[0].bar);
+	t.deepEqual(fixture6, {
+		foo: [{
+			bar: true
+		}]
+	});
 });
 
 test('delete', t => {
@@ -180,6 +214,37 @@ test('delete', t => {
 	const fixture3 = {foo: null};
 	t.false(dotProp.delete(fixture3, 'foo.bar'));
 	t.deepEqual(fixture3, {foo: null});
+
+	const fixture4 = [{
+		top: {
+			dog: 'sindre'
+		}
+	}];
+
+	t.true(dotProp.delete(fixture4, '0.top.dog'));
+	t.deepEqual(fixture4, [{top: {}}]);
+
+	const fixture5 = {
+		foo: [{
+			bar: ['foo', 'bar']
+		}]
+	};
+
+	dotProp.delete(fixture5, 'foo.0.bar.0');
+
+	const fixtureArray = [];
+	fixtureArray[1] = 'bar';
+
+	t.deepEqual(fixture5, {
+		foo: [{
+			bar: fixtureArray
+		}]
+	});
+
+	const fixture6 = {};
+
+	dotProp.set(fixture6, 'foo.bar.0', 'fizz');
+	t.is(fixture6.foo.bar[0], 'fizz');
 });
 
 test('has', t => {
@@ -205,6 +270,16 @@ test('has', t => {
 	t.true(dotProp.has({'foo.baz': {bar: true}}, 'foo\\.baz.bar'));
 	t.true(dotProp.has({'fo.ob.az': {bar: true}}, 'fo\\.ob\\.az.bar'));
 	t.false(dotProp.has(undefined, 'fo\\.ob\\.az.bar'));
+
+	t.true(dotProp.has({
+		foo: [{bar: ['bar', 'bizz']}]
+	}, 'foo.0.bar.1'));
+	t.false(dotProp.has({
+		foo: [{bar: ['bar', 'bizz']}]
+	}, 'foo.0.bar.2'));
+	t.false(dotProp.has({
+		foo: [{bar: ['bar', 'bizz']}]
+	}, 'foo.1.bar.1'));
 });
 
 test('prevent setting/getting `__proto__`', t => {

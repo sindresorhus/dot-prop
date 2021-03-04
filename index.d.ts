@@ -21,6 +21,9 @@ declare const dotProp: {
 
 	dotProp.get({foo: {'dot.dot': 'unicorn'}}, 'foo.dot\\.dot');
 	//=> 'unicorn'
+
+	dotProp.get({foo: [{bar: 'unicorn'}]}, 'foo.0.bar');
+	//=> 'unicorn'
 	```
 	*/
 	get<T>(
@@ -57,6 +60,10 @@ declare const dotProp: {
 	dotProp.set(object, 'foo.baz', 'x');
 	console.log(object);
 	//=> {foo: {bar: 'b', baz: 'x'}}
+
+	dotProp.set(object, 'foo.bar.0', 'a');
+	console.log(object);
+	//=> {foo: {bar: ['a']}}
 	```
 	*/
 	set<T extends {[key: string]: any}>(

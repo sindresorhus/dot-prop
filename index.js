@@ -74,7 +74,13 @@ module.exports = {
 			const p = pathArray[i];
 
 			if (!isObject(object[p])) {
-				object[p] = {};
+				const numericalPath = Number(pathArray[i + 1]);
+
+				if (Number.isInteger(numericalPath) && numericalPath >= 0) {
+					object[p] = [];
+				} else {
+					object[p] = {};
+				}
 			}
 
 			if (i === pathArray.length - 1) {
