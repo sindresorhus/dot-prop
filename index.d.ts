@@ -23,6 +23,9 @@ declare const dotProp: {
 
 	dotProp.get({foo: {'dot.dot': 'unicorn'}}, 'foo.dot\\.dot');
 	//=> 'unicorn'
+
+	dotProp.get({foo: [{bar: 'unicorn'}]}, 'foo.0.bar');
+	//=> 'unicorn'
 	```
 	*/
 	get: <ObjectType, PathType extends string, DefaultValue = undefined>(
@@ -55,6 +58,10 @@ declare const dotProp: {
 	dotProp.set(object, 'foo.baz', 'x');
 	console.log(object);
 	//=> {foo: {bar: 'b', baz: 'x'}}
+
+	dotProp.set(object, 'foo.biz.0', 'a');
+	console.log(object);
+	//=> {foo: {bar: 'b', baz: 'x', biz: ['a']}}
 	```
 	*/
 	set: <ObjectType extends {[key: string]: any}>(
