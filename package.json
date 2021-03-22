@@ -36,7 +36,7 @@
 	],
 	"dependencies": {
 		"is-obj": "^2.0.0",
-		"type-fest": "^0.21.2"
+		"type-fest": "^1.0.0"
 	},
 	"devDependencies": {
 		"ava": "^2.1.0",
