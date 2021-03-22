@@ -35,17 +35,13 @@
 		"dotty"
 	],
 	"dependencies": {
-		"is-obj": "^2.0.0"
+		"is-obj": "^2.0.0",
+		"type-fest": "^1.0.0"
 	},
 	"devDependencies": {
 		"ava": "^2.1.0",
 		"benchmark": "^2.1.4",
-		"tsd": "^0.13.1",
+		"tsd": "^0.14.0",
 		"xo": "^0.33.1"
-	},
-	"xo": {
-		"rules": {
-			"@typescript-eslint/method-signature-style": "off"
-		}
 	}
 }
