@@ -26,21 +26,28 @@ test('get', t => {
 	t.true(dotProp.get({'foo\\.bar': true}, 'foo\\\\.bar'));
 	t.is(dotProp.get({foo: 1}, 'foo.bar'), undefined);
 
-	t.true(dotProp.get([true, false, false], '0'));
-	t.true(dotProp.get([{foo: [true]}], '0.foo.0'));
-	t.true(dotProp.get({foo: [0, {bar: true}]}, 'foo.1.bar'));
+	t.true(dotProp.get([true, false, false], '[0]'));
+	t.true(dotProp.get([{foo: [true]}], '[0].foo[0]'));
+	t.true(dotProp.get({foo: [0, {bar: true}]}, 'foo[1].bar'));
 
 	t.false(dotProp.get(['a', 'b', 'c'], '3', false));
-	t.false(dotProp.get([{foo: [1]}], '0.bar.0', false));
-	t.false(dotProp.get([{foo: [1]}], '0.foo.1', false));
-	t.false(dotProp.get({foo: [0, {bar: 2}]}, 'foo.0.bar', false));
-	t.false(dotProp.get({foo: [0, {bar: 2}]}, 'foo.2.bar', false));
-	t.false(dotProp.get({foo: [0, {bar: 2}]}, 'foo.1.biz', false));
-	t.false(dotProp.get({foo: [0, {bar: 2}]}, 'bar.0.bar', false));
+	t.false(dotProp.get([{foo: [1]}], '[0].bar[0]', false));
+	t.false(dotProp.get([{foo: [1]}], '[0].foo[1]', false));
+	t.false(dotProp.get({foo: [0, {bar: 2}]}, 'foo[0].bar', false));
+	t.false(dotProp.get({foo: [0, {bar: 2}]}, 'foo[2].bar', false));
+	t.false(dotProp.get({foo: [0, {bar: 2}]}, 'foo[1].biz', false));
+	t.false(dotProp.get({foo: [0, {bar: 2}]}, 'bar[0].bar', false));
+	t.true(dotProp.get({
+		bar: {
+			'[0]': true
+		}
+	}, 'bar.[0]'));
 
-	t.false(dotProp.get([], 'foo.0.bar', false));
-	t.true(dotProp.get({foo: [{bar: true}]}, 'foo.0.bar'));
-	t.false(dotProp.get({foo: ['bar']}, 'foo.1', false));
+	t.false(dotProp.get([], 'foo[0].bar', false));
+	t.true(dotProp.get({foo: [{bar: true}]}, 'foo[0].bar'));
+	t.false(dotProp.get({foo: ['bar']}, 'foo[1]', false));
+
+	t.false(dotProp.get([true], '0', false));
 
 	const fixture2 = {};
 	Object.defineProperty(fixture2, 'foo', {
@@ -50,7 +57,7 @@ test('get', t => {
 	t.is(dotProp.get(fixture2, 'foo'), 'bar');
 	t.is(dotProp.get({}, 'hasOwnProperty'), Object.prototype.hasOwnProperty);
 
-	function fn() {}
+	function fn() { }
 	fn.foo = {bar: 1};
 	t.is(dotProp.get(fn), fn);
 	t.is(dotProp.get(fn, 'foo'), fn.foo);
@@ -68,7 +75,7 @@ test('get', t => {
 	t.false(dotProp.get([], 'foo.bar', false));
 	t.false(dotProp.get(undefined, 'foo.bar', false));
 
-	class F4Class {}
+	class F4Class { }
 	F4Class.prototype.foo = 1;
 	const f4 = new F4Class();
 	t.is(dotProp.get(f4, 'foo'), 1); // #46
@@ -107,7 +114,7 @@ test('set', t => {
 	dotProp.set(fixture1, 'foo.function', func);
 	t.is(fixture1.foo.function, func);
 
-	function fn() {}
+	function fn() { }
 	dotProp.set(fn, 'foo.bar', 1);
 	t.is(fn.foo.bar, 1);
 
@@ -144,7 +151,7 @@ test('set', t => {
 
 	const fixture6 = {};
 
-	dotProp.set(fixture6, 'foo.0.bar', true);
+	dotProp.set(fixture6, 'foo[0].bar', true);
 	t.true(fixture6.foo[0].bar);
 	t.deepEqual(fixture6, {
 		foo: [{
@@ -230,7 +237,7 @@ test('delete', t => {
 		}]
 	};
 
-	dotProp.delete(fixture5, 'foo.0.bar.0');
+	dotProp.delete(fixture5, 'foo[0].bar[0]');
 
 	const fixtureArray = [];
 	fixtureArray[1] = 'bar';
@@ -261,7 +268,7 @@ test('has', t => {
 	t.false(dotProp.has({foo: null}, 'foo.bar'));
 	t.false(dotProp.has({foo: ''}, 'foo.bar'));
 
-	function fn() {}
+	function fn() { }
 	fn.foo = {bar: 1};
 	t.false(dotProp.has(fn));
 	t.true(dotProp.has(fn, 'foo'));
@@ -273,13 +280,13 @@ test('has', t => {
 
 	t.true(dotProp.has({
 		foo: [{bar: ['bar', 'bizz']}]
-	}, 'foo.0.bar.1'));
+	}, 'foo[0].bar.1'));
 	t.false(dotProp.has({
 		foo: [{bar: ['bar', 'bizz']}]
-	}, 'foo.0.bar.2'));
+	}, 'foo[0].bar.2'));
 	t.false(dotProp.has({
 		foo: [{bar: ['bar', 'bizz']}]
-	}, 'foo.1.bar.1'));
+	}, 'foo[1].bar.1'));
 });
 
 test('prevent setting/getting `__proto__`', t => {

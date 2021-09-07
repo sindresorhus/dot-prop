@@ -24,7 +24,7 @@ declare const dotProp: {
 	dotProp.get({foo: {'dot.dot': 'unicorn'}}, 'foo.dot\\.dot');
 	//=> 'unicorn'
 
-	dotProp.get({foo: [{bar: 'unicorn'}]}, 'foo.0.bar');
+	dotProp.get({foo: [{bar: 'unicorn'}]}, 'foo[0].bar');
 	//=> 'unicorn'
 	```
 	*/
@@ -32,7 +32,7 @@ declare const dotProp: {
 		object: ObjectType,
 		path: PathType,
 		defaultValue?: DefaultValue
-	) => ObjectType extends Record<string, unknown> ? (Get<ObjectType, PathType> extends unknown ? DefaultValue : Get<ObjectType, PathType>) : undefined; // TODO: When adding array index support (https://github.com/sindresorhus/dot-prop/issues/71) add ` | unknown[]` after `Record<string, unknown>`
+	) => ObjectType extends Record<string, unknown> | unknown[] ? (Get<ObjectType, PathType> extends unknown ? DefaultValue : Get<ObjectType, PathType>) : undefined;
 
 	/**
 	Set the property at the given path to the given value.

@@ -26,7 +26,7 @@ dotProp.get({foo: {bar: 'a'}}, 'foo.notDefined.deep', 'default value');
 dotProp.get({foo: {'dot.dot': 'unicorn'}}, 'foo.dot\\.dot');
 //=> 'unicorn'
 
-dotProp.get({foo: [{bar: 'unicorn'}]}, 'foo.0.bar');
+dotProp.get({foo: [{bar: 'unicorn'}]}, 'foo[0].bar');
 //=> 'unicorn'
 
 // Setter
