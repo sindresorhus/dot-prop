@@ -1,3 +1,5 @@
+import {Get} from 'type-fest';
+
 declare const dotProp: {
 	/**
 	Get the value of the property at the given path.
@@ -26,15 +28,11 @@ declare const dotProp: {
 	//=> 'unicorn'
 	```
 	*/
-	get<T>(
-		object: {[key: string]: any} | undefined,
-		path: string
-	): T | undefined;
-	get<T>(
-		object: {[key: string]: any} | undefined,
-		path: string,
-		defaultValue: T
-	): T;
+	get: <ObjectType, PathType extends string, DefaultValue = undefined>(
+		object: ObjectType,
+		path: PathType,
+		defaultValue?: DefaultValue
+	) => ObjectType extends Record<string, unknown> ? (Get<ObjectType, PathType> extends unknown ? DefaultValue : Get<ObjectType, PathType>) : undefined; // TODO: When adding array index support (https://github.com/sindresorhus/dot-prop/issues/71) add ` | unknown[]` after `Record<string, unknown>`
 
 	/**
 	Set the property at the given path to the given value.
@@ -66,11 +64,11 @@ declare const dotProp: {
 	//=> {foo: {bar: 'b', baz: 'x', biz: ['a']}}
 	```
 	*/
-	set<T extends {[key: string]: any}>(
-		object: T,
+	set: <ObjectType extends {[key: string]: any}>(
+		object: ObjectType,
 		path: string,
 		value: unknown
-	): T;
+	) => ObjectType;
 
 	/**
 	Check whether the property at the given path exists.
@@ -86,7 +84,7 @@ declare const dotProp: {
 	//=> true
 	```
 	*/
-	has(object: {[key: string]: any} | undefined, path: string): boolean;
+	has: (object: {[key: string]: any} | undefined, path: string) => boolean;
 
 	/**
 	Delete the property at the given path.
@@ -110,7 +108,7 @@ declare const dotProp: {
 	//=> {foo: {bar: {y: 'x'}}}
 	```
 	*/
-	delete(object: {[key: string]: any}, path: string): boolean;
+	delete: (object: {[key: string]: any}, path: string) => boolean;
 };
 
 export = dotProp;
