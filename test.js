@@ -57,7 +57,7 @@ test('get', t => {
 	t.is(dotProp.get(fixture2, 'foo'), 'bar');
 	t.is(dotProp.get({}, 'hasOwnProperty'), Object.prototype.hasOwnProperty);
 
-	function fn() { }
+	function fn() {}
 	fn.foo = {bar: 1};
 	t.is(dotProp.get(fn), fn);
 	t.is(dotProp.get(fn, 'foo'), fn.foo);
@@ -75,7 +75,7 @@ test('get', t => {
 	t.false(dotProp.get([], 'foo.bar', false));
 	t.false(dotProp.get(undefined, 'foo.bar', false));
 
-	class F4Class { }
+	class F4Class {}
 	F4Class.prototype.foo = 1;
 	const f4 = new F4Class();
 	t.is(dotProp.get(f4, 'foo'), 1); // #46
@@ -114,7 +114,7 @@ test('set', t => {
 	dotProp.set(fixture1, 'foo.function', func);
 	t.is(fixture1.foo.function, func);
 
-	function fn() { }
+	function fn() {}
 	dotProp.set(fn, 'foo.bar', 1);
 	t.is(fn.foo.bar, 1);
 
@@ -268,7 +268,7 @@ test('has', t => {
 	t.false(dotProp.has({foo: null}, 'foo.bar'));
 	t.false(dotProp.has({foo: ''}, 'foo.bar'));
 
-	function fn() { }
+	function fn() {}
 	fn.foo = {bar: 1};
 	t.false(dotProp.has(fn));
 	t.true(dotProp.has(fn, 'foo'));
