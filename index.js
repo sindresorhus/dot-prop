@@ -35,7 +35,8 @@ function getPathSegments(path) {
 
 				if (isIndex) {
 					isIndex = false;
-					currentPathSegment = `[${currentPathSegment}`;
+					parts.push(`${parts.pop() || ''}[${currentPathSegment}`);
+					currentPathSegment = '';
 				}
 
 				if (isPath && currentPathSegment.length > 0) {
@@ -79,7 +80,7 @@ function getPathSegments(path) {
 
 				if (isIndex) {
 					isPath = true;
-					currentPathSegment = `[${currentPathSegment}`;
+					currentPathSegment = `${parts.pop() || ''}[${currentPathSegment}[`;
 				}
 
 				isIndex = !isIndex;
@@ -89,7 +90,8 @@ function getPathSegments(path) {
 				if (isIgnoring && isIndex) {
 					isIgnoring = false;
 					isIndex = false;
-					currentPathSegment += ']';
+					isPath = true;
+					currentPathSegment = `${parts.pop()}[${currentPathSegment}]`;
 					break;
 				}
 
@@ -124,7 +126,7 @@ function getPathSegments(path) {
 	}
 
 	if (isIndex) {
-		currentPathSegment = `[${currentPathSegment}`;
+		currentPathSegment = `${parts.pop()}[${currentPathSegment}`;
 	}
 
 	if (isIgnoring) {

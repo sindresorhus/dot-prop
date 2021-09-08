@@ -42,6 +42,36 @@ test('get', t => {
 			'[0]': true
 		}
 	}, 'bar.[0]'));
+	t.true(dotProp.get({
+		'foo[5[': true
+	}, 'foo[5['));
+	t.true(dotProp.get({
+		'foo[5': {
+			bar: true
+		}
+	}, 'foo[5.bar'));
+	t.true(dotProp.get({
+		'foo[5]': {
+			bar: true
+		}
+	}, 'foo\\[5].bar'));
+	t.true(dotProp.get({
+		'foo[5]': {
+			bar: true
+		}
+	}, 'foo[5\\].bar'));
+	t.true(dotProp.get({
+		'foo[5': {
+			bar: true
+		}
+	}, 'foo[5'));
+	t.true(dotProp.get({
+		foo: {
+			bar: true
+		}
+	}, 'foo[bar]'));
+	t.false(dotProp.get({}, '__proto__[0]', false));
+	t.false(dotProp.get({}, 'foo[__proto__]', false));
 
 	t.false(dotProp.get([], 'foo[0].bar', false));
 	t.true(dotProp.get({foo: [{bar: true}]}, 'foo[0].bar'));
