@@ -211,5 +211,6 @@ test('prevent setting/getting `__proto__`', t => {
 	dotProp.set({}, '__proto__.unicorn', '🦄');
 	t.not({}.unicorn, '🦄'); // eslint-disable-line no-use-extend-native/no-use-extend-native
 
-	t.false(dotProp.get({}, '__proto__', false));
+	t.is(dotProp.get({}, '__proto__'), undefined);
+	t.is(dotProp.get({}, '__proto__', '🦄'), '🦄');
 });
