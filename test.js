@@ -70,8 +70,8 @@ test('get', t => {
 			bar: true
 		}
 	}, 'foo[bar]'));
-	t.false(dotProp.get({}, '__proto__[0]', false));
-	t.false(dotProp.get({}, 'foo[__proto__]', false));
+	t.false(dotProp.get({}, 'constructor[0]', false));
+	t.false(dotProp.get({}, 'foo[constructor]', false));
 
 	t.false(dotProp.get([], 'foo[0].bar', false));
 	t.true(dotProp.get({foo: [{bar: true}]}, 'foo[0].bar'));
