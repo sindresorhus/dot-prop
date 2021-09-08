@@ -39,7 +39,7 @@ module.exports = {
 
 		const pathArray = getPathSegments(path);
 		if (pathArray.length === 0) {
-			return;
+			return value;
 		}
 
 		for (let i = 0; i < pathArray.length; i++) {
