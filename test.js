@@ -215,5 +215,5 @@ test('prevent setting/getting `__proto__`', t => {
 });
 
 test('return default value if path is invalid', t => {
-	t.is(dotProp.get({}, 'nonexistent', '🦄'), '🦄');
+	t.is(dotProp.get({}, 'constructor', '🦄'), '🦄');
 });
