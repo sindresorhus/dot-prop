@@ -212,5 +212,8 @@ test('prevent setting/getting `__proto__`', t => {
 	t.not({}.unicorn, '🦄'); // eslint-disable-line no-use-extend-native/no-use-extend-native
 
 	t.is(dotProp.get({}, '__proto__'), undefined);
-	t.is(dotProp.get({}, '__proto__', '🦄'), '🦄');
 });
+
+test('return default value if path is invalid', t => {
+	t.is(dotProp.get({}, '__proto__', '🦄'), '🦄');
+})
