@@ -98,15 +98,18 @@ function getPathSegments(path) {
 				if (isIndex) {
 					isIndex = false;
 					isPath = true;
-					const index = Number.parseInt(currentPathSegment, 10);
-					if (Number.isNaN(index)) {
+					const index = Number(currentPathSegment);
+
+					if (Number.isInteger(index)) {
+						parts.push(index);
+					} else {
+						currentPathSegment = `${parts.pop() || ''}[${currentPathSegment}]`;
+
 						if (disallowedKeys.has(currentPathSegment)) {
 							return [];
 						}
 
 						parts.push(currentPathSegment);
-					} else {
-						parts.push(index);
 					}
 
 					currentPathSegment = '';
@@ -195,11 +198,7 @@ module.exports = {
 			const p = pathArray[i];
 
 			if (!isObject(object[p])) {
-				if (Number.isInteger(pathArray[i + 1])) {
-					object[p] = [];
-				} else {
-					object[p] = {};
-				}
+				object[p] = Number.isInteger(pathArray[i + 1]) ? [] : {};
 			}
 
 			if (i === pathArray.length - 1) {

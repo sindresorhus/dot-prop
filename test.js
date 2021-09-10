@@ -64,9 +64,7 @@ test('get', t => {
 		'foo[5': true
 	}, 'foo[5'));
 	t.true(dotProp.get({
-		foo: {
-			bar: true
-		}
+		'foo[bar]': true
 	}, 'foo[bar]'));
 	t.false(dotProp.get({}, 'constructor[0]', false));
 	t.false(dotProp.get({}, 'foo[constructor]', false));
