@@ -9,139 +9,135 @@ const disallowedKeys = new Set([
 
 function getPathSegments(path) {
 	const parts = [];
-
-	let isIgnoring = false;
-	let isPath = true;
+	let currentSegment = '';
+	let currentIndex = '';
 	let isIndex = false;
-	let currentPathSegment = '';
+	let isIgnoring = false;
 
-	for (const character of path) {
+	for (const [index, character] of Object.entries(path)) {
 		switch (character) {
 			case '\\':
-				if (isIgnoring) {
-					isIgnoring = false;
-					currentPathSegment += '\\';
+				if (isIndex) {
+					isIndex = false;
+					currentSegment += `[${currentIndex}`;
+					currentIndex = '';
+				} else if (isIgnoring) {
+					// If `\\` was escaped
+					currentSegment += '\\';
 				}
 
 				isIgnoring = !isIgnoring;
+
 				break;
 
 			case '.':
 				if (isIgnoring) {
+					// If `.` was escaped
 					isIgnoring = false;
-					currentPathSegment += '.';
+					currentSegment += character;
 					break;
 				}
 
 				if (isIndex) {
+					currentSegment += `[${currentIndex}`;
+					currentIndex = '';
 					isIndex = false;
-					parts.push(`${parts.pop() || ''}[${currentPathSegment}`);
-					currentPathSegment = '';
 				}
 
-				if (isPath && currentPathSegment.length > 0) {
-					if (disallowedKeys.has(currentPathSegment)) {
-						return [];
-					}
-
-					parts.push(currentPathSegment);
-					currentPathSegment = '';
+				if (path[index - 1] === ']' && typeof parts[parts.length - 1] === 'number') {
+					// If the dot immediately proceeds an index, skip saving the empty string
+					break;
 				}
 
-				isPath = true;
+				if (disallowedKeys.has(currentSegment)) {
+					return [];
+				}
+
+				parts.push(currentSegment);
+				currentSegment = '';
+
 				break;
 
 			case '[':
 				if (isIgnoring) {
+					// If `[` was escaped
 					isIgnoring = false;
-					currentPathSegment += '[';
+					currentSegment += character;
 					break;
 				}
 
-				if (isPath) {
-					if (currentPathSegment !== '' || parts.length === 0) {
-						isPath = false;
-						isIndex = true;
-
-						if (currentPathSegment.length > 0) {
-							if (disallowedKeys.has(currentPathSegment)) {
-								return [];
-							}
-
-							parts.push(currentPathSegment);
-							currentPathSegment = '';
-						}
-					} else {
-						currentPathSegment += '[';
-					}
-
+				if (path[index - 1] === '.') {
+					currentSegment += character;
 					break;
 				}
 
-				if (isIndex) {
-					isPath = true;
-					currentPathSegment = `${parts.pop() || ''}[${currentPathSegment}[`;
+				if (!isIndex) {
+					isIndex = true;
+					break;
 				}
 
-				isIndex = !isIndex;
+				isIndex = false;
+				currentSegment += `[${currentIndex}[`;
+				currentIndex = '';
 				break;
 
 			case ']':
-				if (isIgnoring && isIndex) {
-					isIgnoring = false;
-					isIndex = false;
-					isPath = true;
-					currentPathSegment = `${parts.pop()}[${currentPathSegment}]`;
-					break;
-				}
-
 				if (isIndex) {
-					isIndex = false;
-					isPath = true;
-					const index = Number(currentPathSegment);
+					const index = Number.parseFloat(currentIndex);
+					if (Number.isInteger(index) && index >= 0) {
+						if (currentSegment) {
+							if (disallowedKeys.has(currentSegment)) {
+								return [];
+							}
 
-					if (Number.isInteger(index)) {
-						parts.push(index);
-					} else {
-						currentPathSegment = `${parts.pop() || ''}[${currentPathSegment}]`;
-
-						if (disallowedKeys.has(currentPathSegment)) {
-							return [];
+							parts.push(currentSegment);
+							currentSegment = '';
 						}
 
-						parts.push(currentPathSegment);
+						parts.push(index);
+					} else {
+						currentSegment += `[${currentIndex}]`;
 					}
 
-					currentPathSegment = '';
+					currentIndex = '';
+					isIndex = false;
+					break;
+				} else if (isIgnoring) {
+					currentSegment += ']';
+					isIgnoring = false;
 					break;
 				}
 
 				// Falls through
 
 			default:
-				if (isIgnoring) {
-					isIgnoring = false;
-					currentPathSegment += '\\';
+				if (isIndex) {
+					currentIndex += character;
+					break;
 				}
 
-				currentPathSegment += character;
+				if (isIgnoring) {
+					// If no character was escaped
+					isIgnoring = false;
+					currentSegment += '\\';
+				}
+
+				currentSegment += character;
 		}
 	}
 
-	if (isIndex) {
-		currentPathSegment = `${parts.pop()}[${currentPathSegment}`;
+	if (currentIndex) {
+		currentSegment += `[${currentIndex}`;
+	} else if (isIgnoring) {
+		currentSegment += '\\';
 	}
 
-	if (isIgnoring) {
-		currentPathSegment += '\\';
-	}
-
-	if (currentPathSegment.length > 0 || parts.length === 0) {
-		if (disallowedKeys.has(currentPathSegment)) {
+	if (currentSegment.length > 0 || parts.length === 0) {
+		if (disallowedKeys.has(currentSegment)) {
 			return [];
 		}
 
-		parts.push(currentPathSegment);
+		parts.push(currentSegment);
 	}
 
 	return parts;
