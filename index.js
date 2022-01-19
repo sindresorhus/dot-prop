@@ -7,45 +7,46 @@ const disallowedKeys = new Set([
 	'constructor'
 ]);
 
+const digits = new Set('0123456789');
+
 function getPathSegments(path) {
 	const parts = [];
 	let currentSegment = '';
-	let currentIndex = '';
-	let isIndex = false;
+	let currentPart = 'start';
 	let isIgnoring = false;
 
-	for (const [index, character] of Object.entries(path)) {
+	for (const character of path) {
 		switch (character) {
 			case '\\':
-				if (isIndex) {
-					isIndex = false;
-					currentSegment += `[${currentIndex}`;
-					currentIndex = '';
-				} else if (isIgnoring) {
-					// If `\\` was escaped
-					currentSegment += '\\';
+				if (currentPart === 'index') {
+					throw new Error('Invalid character in an index');
 				}
 
-				isIgnoring = !isIgnoring;
+				if (currentPart === 'indexEnd') {
+					throw new Error('Invalid character after an index');
+				}
 
+				if (isIgnoring) {
+					currentSegment += character;
+				}
+
+				currentPart = 'property';
+				isIgnoring = !isIgnoring;
 				break;
 
 			case '.':
-				if (isIgnoring) {
-					// If `.` was escaped
-					isIgnoring = false;
-					currentSegment += character;
+				if (currentPart === 'index') {
+					throw new Error('Invalid character in an index');
+				}
+
+				if (currentPart === 'indexEnd') {
+					currentPart = 'property';
 					break;
 				}
 
-				if (isIndex) {
-					currentSegment += `[${currentIndex}`;
-					currentIndex = '';
-					isIndex = false;
-				}
-
-				if (path[index - 1] === ']' && typeof parts[parts.length - 1] === 'number') {
-					// If the dot immediately proceeds an index, skip saving the empty string
+				if (isIgnoring) {
+					isIgnoring = false;
+					currentSegment += character;
 					break;
 				}
 
@@ -55,69 +56,65 @@ function getPathSegments(path) {
 
 				parts.push(currentSegment);
 				currentSegment = '';
-
+				currentPart = 'property';
 				break;
 
 			case '[':
+				if (currentPart === 'index') {
+					throw new Error('Invalid character in an index');
+				}
+
+				if (currentPart === 'indexEnd') {
+					currentPart = 'index';
+					break;
+				}
+
 				if (isIgnoring) {
-					// If `[` was escaped
 					isIgnoring = false;
 					currentSegment += character;
 					break;
 				}
 
-				if (path[index - 1] === '.') {
-					currentSegment += character;
-					break;
+				if (currentPart === 'property') {
+					if (disallowedKeys.has(currentSegment)) {
+						return [];
+					}
+
+					parts.push(currentSegment);
+					currentSegment = '';
 				}
 
-				if (!isIndex) {
-					isIndex = true;
-					break;
-				}
-
-				isIndex = false;
-				currentSegment += `[${currentIndex}[`;
-				currentIndex = '';
+				currentPart = 'index';
 				break;
 
 			case ']':
-				if (isIndex) {
-					const index = Number.parseFloat(currentIndex);
-					if (Number.isInteger(index) && index >= 0) {
-						if (currentSegment) {
-							if (disallowedKeys.has(currentSegment)) {
-								return [];
-							}
-
-							parts.push(currentSegment);
-							currentSegment = '';
-						}
-
-						parts.push(index);
-					} else {
-						currentSegment += `[${currentIndex}]`;
-					}
-
-					currentIndex = '';
-					isIndex = false;
+				if (currentPart === 'index') {
+					parts.push(Number.parseInt(currentSegment, 10));
+					currentSegment = '';
+					currentPart = 'indexEnd';
 					break;
-				} else if (isIgnoring) {
-					currentSegment += ']';
-					isIgnoring = false;
-					break;
+				}
+
+				if (currentPart === 'indexEnd') {
+					throw new Error('Invalid character after an index');
 				}
 
 				// Falls through
 
 			default:
-				if (isIndex) {
-					currentIndex += character;
-					break;
+				if (currentPart === 'index' && !digits.has(character)) {
+					throw new Error('Invalid character in an index');
+				}
+
+				if (currentPart === 'indexEnd') {
+					throw new Error('Invalid character after an index');
+				}
+
+				if (currentPart === 'start') {
+					currentPart = 'property';
 				}
 
 				if (isIgnoring) {
-					// If no character was escaped
 					isIgnoring = false;
 					currentSegment += '\\';
 				}
@@ -126,21 +123,38 @@ function getPathSegments(path) {
 		}
 	}
 
-	if (currentIndex) {
-		currentSegment += `[${currentIndex}`;
-	} else if (isIgnoring) {
+	if (isIgnoring) {
 		currentSegment += '\\';
 	}
 
-	if (currentSegment.length > 0 || parts.length === 0) {
+	if (currentPart === 'property') {
 		if (disallowedKeys.has(currentSegment)) {
 			return [];
 		}
 
 		parts.push(currentSegment);
+	} else if (currentPart === 'index') {
+		throw new Error('Index was not closed');
+	} else if (currentPart === 'start') {
+		parts.push('');
 	}
 
 	return parts;
+}
+
+function isStringIndex(object, key) {
+	if (typeof key !== 'number' && Array.isArray(object)) {
+		const index = Number.parseInt(key, 10);
+		return Number.isInteger(index) && object[index] === object[key];
+	}
+
+	return false;
+}
+
+function assertNotStringIndex(object, key) {
+	if (isStringIndex(object, key)) {
+		throw new Error('Cannot use string index');
+	}
 }
 
 module.exports = {
@@ -156,10 +170,8 @@ module.exports = {
 
 		for (let i = 0; i < pathArray.length; i++) {
 			const key = pathArray[i];
-			const index = Number.parseInt(key, 10);
 
-			// Disallow string indexes
-			if (!Number.isInteger(key) && Array.isArray(object) && !Number.isNaN(index) && object[index] === object[key]) {
+			if (isStringIndex(object, key)) {
 				object = i === pathArray.length - 1 ? undefined : null;
 			} else {
 				object = object[key];
@@ -192,6 +204,7 @@ module.exports = {
 
 		for (let i = 0; i < pathArray.length; i++) {
 			const p = pathArray[i];
+			assertNotStringIndex(object, p);
 
 			if (!isObject(object[p])) {
 				object[p] = Number.isInteger(pathArray[i + 1]) ? [] : {};
@@ -216,6 +229,7 @@ module.exports = {
 
 		for (let i = 0; i < pathArray.length; i++) {
 			const p = pathArray[i];
+			assertNotStringIndex(object, p);
 
 			if (i === pathArray.length - 1) {
 				delete object[p];
@@ -243,7 +257,7 @@ module.exports = {
 		// eslint-disable-next-line unicorn/no-for-loop
 		for (let i = 0; i < pathArray.length; i++) {
 			if (isObject(object)) {
-				if (!(pathArray[i] in object)) {
+				if (!(pathArray[i] in object && !isStringIndex(object, pathArray[i]))) {
 					return false;
 				}
 

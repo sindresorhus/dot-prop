@@ -62,8 +62,8 @@ test('get', t => {
 	const f4 = new F4Class();
 	t.is(dotProp.get(f4, 'foo'), 1); // #46
 
-	t.true(dotProp.get({'': {'': true}}, '..'));
-	t.true(dotProp.get({'': true}, '.'));
+	t.true(dotProp.get({'': {'': {'': true}}}, '..'));
+	t.true(dotProp.get({'': {'': true}}, '.'));
 });
 
 test('get with array indexes', t => {
@@ -83,33 +83,50 @@ test('get with array indexes', t => {
 		bar: {
 			'[0]': true
 		}
+	}, 'bar.\\[0]'));
+	t.true(dotProp.get({
+		bar: {
+			'': [true]
+		}
 	}, 'bar.[0]'));
-	t.true(dotProp.get({
+	t.throws(() => dotProp.get({
 		'foo[5[': true
-	}, 'foo[5['));
-	t.true(dotProp.get({
+	}, 'foo[5['), {
+		message: 'Invalid character in an index'
+	});
+	t.throws(() => dotProp.get({
 		'foo[5': {
 			bar: true
 		}
-	}, 'foo[5.bar'));
+	}, 'foo[5.bar'), {
+		message: 'Invalid character in an index'
+	});
 	t.true(dotProp.get({
 		'foo[5]': {
 			bar: true
 		}
 	}, 'foo\\[5].bar'));
-	t.true(dotProp.get({
-		'foo[5]': {
+	t.throws(() => dotProp.get({
+		'foo[5\\]': {
 			bar: true
 		}
-	}, 'foo[5\\].bar'));
-	t.true(dotProp.get({
+	}, 'foo[5\\].bar'), {
+		message: 'Invalid character in an index'
+	});
+	t.throws(() => dotProp.get({
 		'foo[5': true
-	}, 'foo[5'));
-	t.true(dotProp.get({
+	}, 'foo[5'), {
+		message: 'Index was not closed'
+	});
+	t.throws(() => dotProp.get({
 		'foo[bar]': true
-	}, 'foo[bar]'));
+	}, 'foo[bar]'), {
+		message: 'Invalid character in an index'
+	});
 	t.false(dotProp.get({}, 'constructor[0]', false));
-	t.false(dotProp.get({}, 'foo[constructor]', false));
+	t.throws(() => dotProp.get({}, 'foo[constructor]', false), {
+		message: 'Invalid character in an index'
+	});
 
 	t.false(dotProp.get([], 'foo[0].bar', false));
 	t.true(dotProp.get({foo: [{bar: true}]}, 'foo[0].bar'));
@@ -124,15 +141,23 @@ test('get with array indexes', t => {
 
 	t.true(dotProp.get([{
 		'[1]': true
-	}, false, false], '[0].[1]'));
+	}, false, false], '[0].\\[1]'));
 
 	t.true(dotProp.get({foo: {'[0]': true}}, 'foo.\\[0]'));
-	t.true(dotProp.get({foo: {'[0]': true}}, 'foo.[0\\]'));
+	t.throws(() => dotProp.get({foo: {'[0]': true}}, 'foo.[0\\]'), {
+		message: 'Invalid character in an index'
+	});
 	t.true(dotProp.get({foo: {'\\': [true]}}, 'foo.\\\\[0]'));
-	t.true(dotProp.get({foo: {'[0]': true}}, 'foo.[0\\]'));
+	t.throws(() => dotProp.get({foo: {'[0]': true}}, 'foo.[0\\]'), {
+		message: 'Invalid character in an index'
+	});
 
-	t.true(dotProp.get({'foo[0': {'9]': true}}, 'foo[0.9]'));
-	t.true(dotProp.get({'foo[-1]': true}, 'foo[-1]'));
+	t.throws(() => dotProp.get({'foo[0': {'9]': true}}, 'foo[0.9]'), {
+		message: 'Invalid character in an index'
+	});
+	t.throws(() => dotProp.get({'foo[-1]': true}, 'foo[-1]'), {
+		message: 'Invalid character in an index'
+	});
 });
 
 test('set', t => {
@@ -197,11 +222,19 @@ test('set', t => {
 
 	const fixture5 = [];
 
-	dotProp.set(fixture5, '1', true);
-	t.true(fixture5[1]);
+	dotProp.set(fixture5, '[1]', true);
+	t.is(fixture5[1], true);
 
-	dotProp.set(fixture5, '0.foo.0', true);
-	t.true(fixture5[0].foo[0]);
+	dotProp.set(fixture5, '[0].foo[0]', true);
+	t.is(fixture5[0].foo[0], true);
+
+	t.throws(() => dotProp.set(fixture5, '1', true), {
+		message: 'Cannot use string index'
+	});
+
+	t.throws(() => dotProp.set(fixture5, '0.foo.0', true), {
+		message: 'Cannot use string index'
+	});
 
 	const fixture6 = {};
 
@@ -282,7 +315,10 @@ test('delete', t => {
 		}
 	}];
 
-	t.true(dotProp.delete(fixture4, '0.top.dog'));
+	t.throws(() => dotProp.delete(fixture4, '0.top.dog'), {
+		message: 'Cannot use string index'
+	});
+	t.true(dotProp.delete(fixture4, '[0].top.dog'));
 	t.deepEqual(fixture4, [{top: {}}]);
 
 	const fixture5 = {
@@ -305,7 +341,6 @@ test('delete', t => {
 	const fixture6 = {};
 
 	dotProp.set(fixture6, 'foo.bar.0', 'fizz');
-	t.is(fixture6.foo.bar[0], 'fizz');
 });
 
 test('has', t => {
@@ -332,7 +367,7 @@ test('has', t => {
 	t.true(dotProp.has({'fo.ob.az': {bar: true}}, 'fo\\.ob\\.az.bar'));
 	t.false(dotProp.has(undefined, 'fo\\.ob\\.az.bar'));
 
-	t.true(dotProp.has({
+	t.false(dotProp.has({
 		foo: [{bar: ['bar', 'bizz']}]
 	}, 'foo[0].bar.1'));
 	t.false(dotProp.has({
@@ -341,6 +376,11 @@ test('has', t => {
 	t.false(dotProp.has({
 		foo: [{bar: ['bar', 'bizz']}]
 	}, 'foo[1].bar.1'));
+	t.true(dotProp.has({
+		foo: [{bar: {
+			1: 'bar'
+		}}]
+	}, 'foo[0].bar.1'));
 });
 
 test('prevent setting/getting `__proto__`', t => {
