@@ -4,86 +4,86 @@
 
 ## Install
 
-```
-$ npm install dot-prop
+```sh
+npm install dot-prop
 ```
 
 ## Usage
 
 ```js
-const dotProp = require('dot-prop');
+import {getProperty, setProperty, hasProperty, deleteProperty} from 'dot-prop';
 
 // Getter
-dotProp.get({foo: {bar: 'unicorn'}}, 'foo.bar');
+getProperty({foo: {bar: 'unicorn'}}, 'foo.bar');
 //=> 'unicorn'
 
-dotProp.get({foo: {bar: 'a'}}, 'foo.notDefined.deep');
+getProperty({foo: {bar: 'a'}}, 'foo.notDefined.deep');
 //=> undefined
 
-dotProp.get({foo: {bar: 'a'}}, 'foo.notDefined.deep', 'default value');
+getProperty({foo: {bar: 'a'}}, 'foo.notDefined.deep', 'default value');
 //=> 'default value'
 
-dotProp.get({foo: {'dot.dot': 'unicorn'}}, 'foo.dot\\.dot');
+getProperty({foo: {'dot.dot': 'unicorn'}}, 'foo.dot\\.dot');
 //=> 'unicorn'
 
-dotProp.get({foo: [{bar: 'unicorn'}]}, 'foo[0].bar');
+getProperty({foo: [{bar: 'unicorn'}]}, 'foo[0].bar');
 //=> 'unicorn'
 
 // Setter
 const object = {foo: {bar: 'a'}};
-dotProp.set(object, 'foo.bar', 'b');
+setProperty(object, 'foo.bar', 'b');
 console.log(object);
 //=> {foo: {bar: 'b'}}
 
-const foo = dotProp.set({}, 'foo.bar', 'c');
+const foo = setProperty({}, 'foo.bar', 'c');
 console.log(foo);
 //=> {foo: {bar: 'c'}}
 
-dotProp.set(object, 'foo.baz', 'x');
+setProperty(object, 'foo.baz', 'x');
 console.log(object);
 //=> {foo: {bar: 'b', baz: 'x'}}
 
-dotProp.set(object, 'foo.biz.0', 'a');
+setProperty(object, 'foo.biz.0', 'a');
 console.log(object);
 //=> {foo: {bar: 'b', baz: 'x', biz: ['a']}}
 
 // Has
-dotProp.has({foo: {bar: 'unicorn'}}, 'foo.bar');
+hasProperty({foo: {bar: 'unicorn'}}, 'foo.bar');
 //=> true
 
 // Deleter
 const object = {foo: {bar: 'a'}};
-dotProp.delete(object, 'foo.bar');
+deleteProperty(object, 'foo.bar');
 console.log(object);
 //=> {foo: {}}
 
 object.foo.bar = {x: 'y', y: 'x'};
-dotProp.delete(object, 'foo.bar.x');
+deleteProperty(object, 'foo.bar.x');
 console.log(object);
 //=> {foo: {bar: {y: 'x'}}}
 ```
 
 ## API
 
-### get(object, path, defaultValue?)
+### getProperty(object, path, defaultValue?)
 
 Get the value of the property at the given path.
 
 Returns the value if any.
 
-### set(object, path, value)
+### setProperty(object, path, value)
 
 Set the property at the given path to the given value.
 
 Returns the object.
 
-### has(object, path)
+### hasProperty(object, path)
 
 Check whether the property at the given path exists.
 
 Returns a boolean.
 
-### delete(object, path)
+### deleteProperty(object, path)
 
 Delete the property at the given path.
 

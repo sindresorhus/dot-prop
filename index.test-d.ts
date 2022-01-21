@@ -1,18 +1,18 @@
 import {expectType, expectAssignable} from 'tsd';
-import dotProp = require('.');
+import {getProperty, setProperty, hasProperty, deleteProperty} from './index.js';
 
-expectType<string>(dotProp.get({foo: {bar: 'unicorn'}}, 'foo.bar'));
-expectType<undefined>(dotProp.get({foo: {bar: 'a'}}, 'foo.notDefined.deep'));
+expectType<string>(getProperty({foo: {bar: 'unicorn'}}, 'foo.bar'));
+expectType<undefined>(getProperty({foo: {bar: 'a'}}, 'foo.notDefined.deep'));
 expectAssignable<string>(
-	dotProp.get({foo: {bar: 'a'}}, 'foo.notDefined.deep', 'default value')
+	getProperty({foo: {bar: 'a'}}, 'foo.notDefined.deep', 'default value'),
 );
 expectType<string>(
-	dotProp.get({foo: {'dot.dot': 'unicorn'}}, 'foo.dot\\.dot')
+	getProperty({foo: {'dot.dot': 'unicorn'}}, 'foo.dot\\.dot'),
 );
 
 const object = {foo: {bar: 'a'}};
-expectType<typeof object>(dotProp.set(object, 'foo.bar', 'b'));
+expectType<typeof object>(setProperty(object, 'foo.bar', 'b'));
 
-expectType<boolean>(dotProp.has({foo: {bar: 'unicorn'}}, 'foo.bar'));
+expectType<boolean>(hasProperty({foo: {bar: 'unicorn'}}, 'foo.bar'));
 
-expectType<boolean>(dotProp.delete({foo: {bar: 'a'}}, 'foo.bar'));
+expectType<boolean>(deleteProperty({foo: {bar: 'a'}}, 'foo.bar'));

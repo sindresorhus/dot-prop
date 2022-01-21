@@ -1,114 +1,110 @@
 import {Get} from 'type-fest';
 
-declare const dotProp: {
-	/**
-	Get the value of the property at the given path.
+/**
+Get the value of the property at the given path.
 
-	@param object - Object or array to get the `path` value.
-	@param path - Path of the property in the object, using `.` to separate each nested key. Use `\\.` if you have a `.` in the key.
-	@param defaultValue - Default value.
+@param object - Object or array to get the `path` value.
+@param path - Path of the property in the object, using `.` to separate each nested key. Use `\\.` if you have a `.` in the key.
+@param defaultValue - Default value.
 
-	@example
-	```
-	import dotProp = require('dot-prop');
+@example
+```
+import {getProperty} from 'dot-prop';
 
-	dotProp.get({foo: {bar: 'unicorn'}}, 'foo.bar');
-	//=> 'unicorn'
+getProperty({foo: {bar: 'unicorn'}}, 'foo.bar');
+//=> 'unicorn'
 
-	dotProp.get({foo: {bar: 'a'}}, 'foo.notDefined.deep');
-	//=> undefined
+getProperty({foo: {bar: 'a'}}, 'foo.notDefined.deep');
+//=> undefined
 
-	dotProp.get({foo: {bar: 'a'}}, 'foo.notDefined.deep', 'default value');
-	//=> 'default value'
+getProperty({foo: {bar: 'a'}}, 'foo.notDefined.deep', 'default value');
+//=> 'default value'
 
-	dotProp.get({foo: {'dot.dot': 'unicorn'}}, 'foo.dot\\.dot');
-	//=> 'unicorn'
+getProperty({foo: {'dot.dot': 'unicorn'}}, 'foo.dot\\.dot');
+//=> 'unicorn'
 
-	dotProp.get({foo: [{bar: 'unicorn'}]}, 'foo[0].bar');
-	//=> 'unicorn'
-	```
-	*/
-	get: <ObjectType, PathType extends string, DefaultValue = undefined>(
-		object: ObjectType,
-		path: PathType,
-		defaultValue?: DefaultValue
-	) => ObjectType extends Record<string, unknown> | unknown[] ? (Get<ObjectType, PathType> extends unknown ? DefaultValue : Get<ObjectType, PathType>) : undefined;
+getProperty({foo: [{bar: 'unicorn'}]}, 'foo[0].bar');
+//=> 'unicorn'
+```
+*/
+export function getProperty<ObjectType, PathType extends string, DefaultValue = undefined>(
+	object: ObjectType,
+	path: PathType,
+	defaultValue?: DefaultValue
+): ObjectType extends Record<string, unknown> | unknown[] ? (Get<ObjectType, PathType> extends unknown ? DefaultValue : Get<ObjectType, PathType>) : undefined;
 
-	/**
-	Set the property at the given path to the given value.
+/**
+Set the property at the given path to the given value.
 
-	@param object - Object or array to set the `path` value.
-	@param path - Path of the property in the object, using `.` to separate each nested key. Use `\\.` if you have a `.` in the key.
-	@param value - Value to set at `path`.
-	@returns The object.
+@param object - Object or array to set the `path` value.
+@param path - Path of the property in the object, using `.` to separate each nested key. Use `\\.` if you have a `.` in the key.
+@param value - Value to set at `path`.
+@returns The object.
 
-	@example
-	```
-	import dotProp = require('dot-prop');
+@example
+```
+import {setProperty} from 'dot-prop';
 
-	const object = {foo: {bar: 'a'}};
-	dotProp.set(object, 'foo.bar', 'b');
-	console.log(object);
-	//=> {foo: {bar: 'b'}}
+const object = {foo: {bar: 'a'}};
+setProperty(object, 'foo.bar', 'b');
+console.log(object);
+//=> {foo: {bar: 'b'}}
 
-	const foo = dotProp.set({}, 'foo.bar', 'c');
-	console.log(foo);
-	//=> {foo: {bar: 'c'}}
+const foo = setProperty({}, 'foo.bar', 'c');
+console.log(foo);
+//=> {foo: {bar: 'c'}}
 
-	dotProp.set(object, 'foo.baz', 'x');
-	console.log(object);
-	//=> {foo: {bar: 'b', baz: 'x'}}
+setProperty(object, 'foo.baz', 'x');
+console.log(object);
+//=> {foo: {bar: 'b', baz: 'x'}}
 
-	dotProp.set(object, 'foo.biz[0]', 'a');
-	console.log(object);
-	//=> {foo: {bar: 'b', baz: 'x', biz: ['a']}}
-	```
-	*/
-	set: <ObjectType extends {[key: string]: any}>(
-		object: ObjectType,
-		path: string,
-		value: unknown
-	) => ObjectType;
+setProperty(object, 'foo.biz[0]', 'a');
+console.log(object);
+//=> {foo: {bar: 'b', baz: 'x', biz: ['a']}}
+```
+*/
+export function setProperty<ObjectType extends Record<string, any>>(
+	object: ObjectType,
+	path: string,
+	value: unknown
+): ObjectType;
 
-	/**
-	Check whether the property at the given path exists.
+/**
+Check whether the property at the given path exists.
 
-	@param object - Object or array to test the `path` value.
-	@param path - Path of the property in the object, using `.` to separate each nested key. Use `\\.` if you have a `.` in the key.
+@param object - Object or array to test the `path` value.
+@param path - Path of the property in the object, using `.` to separate each nested key. Use `\\.` if you have a `.` in the key.
 
-	@example
-	```
-	import dotProp = require('dot-prop');
+@example
+```
+import {hasProperty} from 'dot-prop';
 
-	dotProp.has({foo: {bar: 'unicorn'}}, 'foo.bar');
-	//=> true
-	```
-	*/
-	has: (object: {[key: string]: any} | undefined, path: string) => boolean;
+hasProperty({foo: {bar: 'unicorn'}}, 'foo.bar');
+//=> true
+```
+*/
+export function hasProperty(object: Record<string, any> | undefined, path: string): boolean;
 
-	/**
-	Delete the property at the given path.
+/**
+Delete the property at the given path.
 
-	@param object - Object or array to delete the `path` value.
-	@param path - Path of the property in the object, using `.` to separate each nested key. Use `\\.` if you have a `.` in the key.
-	@returns A boolean of whether the property existed before being deleted.
+@param object - Object or array to delete the `path` value.
+@param path - Path of the property in the object, using `.` to separate each nested key. Use `\\.` if you have a `.` in the key.
+@returns A boolean of whether the property existed before being deleted.
 
-	@example
-	```
-	import dotProp = require('dot-prop');
+@example
+```
+import {deleteProperty} from 'dot-prop';
 
-	const object = {foo: {bar: 'a'}};
-	dotProp.delete(object, 'foo.bar');
-	console.log(object);
-	//=> {foo: {}}
+const object = {foo: {bar: 'a'}};
+deleteProperty(object, 'foo.bar');
+console.log(object);
+//=> {foo: {}}
 
-	object.foo.bar = {x: 'y', y: 'x'};
-	dotProp.delete(object, 'foo.bar.x');
-	console.log(object);
-	//=> {foo: {bar: {y: 'x'}}}
-	```
-	*/
-	delete: (object: {[key: string]: any}, path: string) => boolean;
-};
-
-export = dotProp;
+object.foo.bar = {x: 'y', y: 'x'};
+deleteProperty(object, 'foo.bar.x');
+console.log(object);
+//=> {foo: {bar: {y: 'x'}}}
+```
+*/
+export function deleteProperty(object: Record<string, any>, path: string): boolean;
