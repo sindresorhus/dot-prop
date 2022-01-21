@@ -26,6 +26,9 @@ dotProp.get({foo: {bar: 'a'}}, 'foo.notDefined.deep', 'default value');
 dotProp.get({foo: {'dot.dot': 'unicorn'}}, 'foo.dot\\.dot');
 //=> 'unicorn'
 
+dotProp.get({foo: [{bar: 'unicorn'}]}, 'foo[0].bar');
+//=> 'unicorn'
+
 // Setter
 const object = {foo: {bar: 'a'}};
 dotProp.set(object, 'foo.bar', 'b');
@@ -39,6 +42,10 @@ console.log(foo);
 dotProp.set(object, 'foo.baz', 'x');
 console.log(object);
 //=> {foo: {bar: 'b', baz: 'x'}}
+
+dotProp.set(object, 'foo.biz.0', 'a');
+console.log(object);
+//=> {foo: {bar: 'b', baz: 'x', biz: ['a']}}
 
 // Has
 dotProp.has({foo: {bar: 'unicorn'}}, 'foo.bar');
@@ -84,9 +91,9 @@ Returns a boolean of whether the property existed before being deleted.
 
 #### object
 
-Type: `object`
+Type: `object | array`
 
-Object to get, set, or delete the `path` value.
+Object or array to get, set, or delete the `path` value.
 
 You are allowed to pass in `undefined` as the object to the `get` and `has` functions.
 

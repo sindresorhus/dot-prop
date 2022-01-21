@@ -4,7 +4,7 @@ declare const dotProp: {
 	/**
 	Get the value of the property at the given path.
 
-	@param object - Object to get the `path` value.
+	@param object - Object or array to get the `path` value.
 	@param path - Path of the property in the object, using `.` to separate each nested key. Use `\\.` if you have a `.` in the key.
 	@param defaultValue - Default value.
 
@@ -23,18 +23,21 @@ declare const dotProp: {
 
 	dotProp.get({foo: {'dot.dot': 'unicorn'}}, 'foo.dot\\.dot');
 	//=> 'unicorn'
+
+	dotProp.get({foo: [{bar: 'unicorn'}]}, 'foo[0].bar');
+	//=> 'unicorn'
 	```
 	*/
 	get: <ObjectType, PathType extends string, DefaultValue = undefined>(
 		object: ObjectType,
 		path: PathType,
 		defaultValue?: DefaultValue
-	) => ObjectType extends Record<string, unknown> ? (Get<ObjectType, PathType> extends unknown ? DefaultValue : Get<ObjectType, PathType>) : undefined; // TODO: When adding array index support (https://github.com/sindresorhus/dot-prop/issues/71) add ` | unknown[]` after `Record<string, unknown>`
+	) => ObjectType extends Record<string, unknown> | unknown[] ? (Get<ObjectType, PathType> extends unknown ? DefaultValue : Get<ObjectType, PathType>) : undefined;
 
 	/**
 	Set the property at the given path to the given value.
 
-	@param object - Object to set the `path` value.
+	@param object - Object or array to set the `path` value.
 	@param path - Path of the property in the object, using `.` to separate each nested key. Use `\\.` if you have a `.` in the key.
 	@param value - Value to set at `path`.
 	@returns The object.
@@ -55,6 +58,10 @@ declare const dotProp: {
 	dotProp.set(object, 'foo.baz', 'x');
 	console.log(object);
 	//=> {foo: {bar: 'b', baz: 'x'}}
+
+	dotProp.set(object, 'foo.biz[0]', 'a');
+	console.log(object);
+	//=> {foo: {bar: 'b', baz: 'x', biz: ['a']}}
 	```
 	*/
 	set: <ObjectType extends {[key: string]: any}>(
@@ -66,7 +73,7 @@ declare const dotProp: {
 	/**
 	Check whether the property at the given path exists.
 
-	@param object - Object to test the `path` value.
+	@param object - Object or array to test the `path` value.
 	@param path - Path of the property in the object, using `.` to separate each nested key. Use `\\.` if you have a `.` in the key.
 
 	@example
@@ -82,7 +89,7 @@ declare const dotProp: {
 	/**
 	Delete the property at the given path.
 
-	@param object - Object to delete the `path` value.
+	@param object - Object or array to delete the `path` value.
 	@param path - Path of the property in the object, using `.` to separate each nested key. Use `\\.` if you have a `.` in the key.
 	@returns A boolean of whether the property existed before being deleted.
 
