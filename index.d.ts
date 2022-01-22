@@ -120,11 +120,11 @@ import {getProperty, escapePath} from 'dot-prop';
 
 const object = {
 	foo: {
-		bar: ['👸🏻 You found me Mario!'],
+		bar: '👸🏻 You found me Mario!',
 	},
-	'foo.bar[0]' : '🍄 The princess is in another castle!',
+	'foo.bar' : '🍄 The princess is in another castle!',
 };
-const escapedPath = escapePath('foo.bar[0]');
+const escapedPath = escapePath('foo.bar');
 
 console.log(getProperty(object, escapedPath));
 //=> '🍄 The princess is in another castle!'
