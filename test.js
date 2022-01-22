@@ -391,7 +391,10 @@ test('escapePath', t => {
 	t.is(escapePath('foo.bar[0].baz'), 'foo\\.bar\\[0]\\.baz');
 	t.is(escapePath('[0].foo'), '\\[0]\\.foo');
 	t.is(escapePath(''), '');
-	t.throws(() => escapePath(0), {
+
+	t.throws(() => {
+		escapePath(0);
+	}, {
 		instanceOf: TypeError,
 		message: 'Expected a string',
 	});
