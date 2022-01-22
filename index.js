@@ -180,11 +180,11 @@ export function getProperty(object, path, value) {
 		return value;
 	}
 
-	for (let i = 0; i < pathArray.length; i++) {
-		const key = pathArray[i];
+	for (let index = 0; index < pathArray.length; index++) {
+		const key = pathArray[index];
 
 		if (isStringIndex(object, key)) {
-			object = i === pathArray.length - 1 ? undefined : null;
+			object = index === pathArray.length - 1 ? undefined : null;
 		} else {
 			object = object[key];
 		}
@@ -195,7 +195,7 @@ export function getProperty(object, path, value) {
 			// if it didn't return `undefined`
 			// it would return `null` if `object` is `null`
 			// but we want `get({foo: null}, 'foo.bar')` to equal `undefined`, or the supplied value, not `null`
-			if (i !== pathArray.length - 1) {
+			if (index !== pathArray.length - 1) {
 				return value;
 			}
 
@@ -214,19 +214,20 @@ export function setProperty(object, path, value) {
 	const root = object;
 	const pathArray = getPathSegments(path);
 
-	for (let i = 0; i < pathArray.length; i++) {
-		const p = pathArray[i];
-		assertNotStringIndex(object, p);
+	for (let index = 0; index < pathArray.length; index++) {
+		const key = pathArray[index];
 
-		if (!isObject(object[p])) {
-			object[p] = Number.isInteger(pathArray[i + 1]) ? [] : {};
+		assertNotStringIndex(object, key);
+
+		if (!isObject(object[key])) {
+			object[key] = typeof pathArray[index + 1] === 'number' ? [] : {};
 		}
 
-		if (i === pathArray.length - 1) {
-			object[p] = value;
+		if (index === pathArray.length - 1) {
+			object[key] = value;
 		}
 
-		object = object[p];
+		object = object[key];
 	}
 
 	return root;
@@ -239,16 +240,17 @@ export function deleteProperty(object, path) {
 
 	const pathArray = getPathSegments(path);
 
-	for (let i = 0; i < pathArray.length; i++) {
-		const p = pathArray[i];
-		assertNotStringIndex(object, p);
+	for (let index = 0; index < pathArray.length; index++) {
+		const key = pathArray[index];
 
-		if (i === pathArray.length - 1) {
-			delete object[p];
+		assertNotStringIndex(object, key);
+
+		if (index === pathArray.length - 1) {
+			delete object[key];
 			return true;
 		}
 
-		object = object[p];
+		object = object[key];
 
 		if (!isObject(object)) {
 			return false;
@@ -266,17 +268,12 @@ export function hasProperty(object, path) {
 		return false;
 	}
 
-	// eslint-disable-next-line unicorn/no-for-loop
-	for (let i = 0; i < pathArray.length; i++) {
-		if (isObject(object)) {
-			if (!(pathArray[i] in object && !isStringIndex(object, pathArray[i]))) {
-				return false;
-			}
-
-			object = object[pathArray[i]];
-		} else {
+	for (const key of pathArray) {
+		if (!isObject(object) || !(key in object) || isStringIndex(object, key)) {
 			return false;
 		}
+
+		object = object[key];
 	}
 
 	return true;
