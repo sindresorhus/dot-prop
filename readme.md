@@ -89,6 +89,25 @@ Delete the property at the given path.
 
 Returns a boolean of whether the property existed before being deleted.
 
+### escapePath(path)
+
+Escape special characters in a path. Useful for sanitizing user input.
+
+```js
+import {getProperty, escapePath} from 'dot-prop';
+
+const object = {
+	foo: {
+		bar: '👸🏻 You found me Mario!',
+	},
+	'foo.bar' : '🍄 The princess is in another castle!',
+};
+const escapedPath = escapePath('foo.bar');
+
+console.log(getProperty(object, escapedPath));
+//=> '🍄 The princess is in another castle!'
+```
+
 #### object
 
 Type: `object | array`

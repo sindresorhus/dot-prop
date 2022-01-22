@@ -1,5 +1,5 @@
 import test from 'ava';
-import {getProperty, setProperty, hasProperty, deleteProperty} from './index.js';
+import {getProperty, setProperty, hasProperty, deleteProperty, escapePath} from './index.js';
 
 test('getProperty', t => {
 	const fixture1 = {foo: {bar: 1}};
@@ -381,6 +381,25 @@ test('hasProperty', t => {
 			1: 'bar',
 		}}],
 	}, 'foo[0].bar.1'));
+});
+
+test('escapePath', t => {
+	t.is(escapePath('foo.bar[0]'), 'foo\\.bar\\[0]');
+	t.is(escapePath('foo\\.bar[0]'), 'foo\\\\\\.bar\\[0]');
+	t.is(escapePath('foo\\\.bar[0]'), 'foo\\\\\\.bar\\[0]'); // eslint-disable-line no-useless-escape
+	t.is(escapePath('foo\\\\.bar[0]'), 'foo\\\\\\\\\\.bar\\[0]');
+	t.is(escapePath('foo\\\\.bar\\\\[0]'), 'foo\\\\\\\\\\.bar\\\\\\\\\\[0]');
+	t.is(escapePath('foo[0].bar'), 'foo\\[0]\\.bar');
+	t.is(escapePath('foo.bar[0].baz'), 'foo\\.bar\\[0]\\.baz');
+	t.is(escapePath('[0].foo'), '\\[0]\\.foo');
+	t.is(escapePath(''), '');
+
+	t.throws(() => {
+		escapePath(0);
+	}, {
+		instanceOf: TypeError,
+		message: 'Expected a string',
+	});
 });
 
 test('prevent setting/getting `__proto__`', t => {

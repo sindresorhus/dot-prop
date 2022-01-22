@@ -278,3 +278,11 @@ export function hasProperty(object, path) {
 
 	return true;
 }
+
+export function escapePath(path) {
+	if (typeof path !== 'string') {
+		throw new TypeError('Expected a string');
+	}
+
+	return path.replace(/[\\.[]/g, '\\$&');
+}

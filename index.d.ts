@@ -108,3 +108,26 @@ console.log(object);
 ```
 */
 export function deleteProperty(object: Record<string, any>, path: string): boolean;
+
+/**
+Escape special characters in a path. Useful for sanitizing user input.
+
+@param path - The dot path to sanitize.
+
+@example
+```
+import {getProperty, escapePath} from 'dot-prop';
+
+const object = {
+	foo: {
+		bar: '👸🏻 You found me Mario!',
+	},
+	'foo.bar' : '🍄 The princess is in another castle!',
+};
+const escapedPath = escapePath('foo.bar');
+
+console.log(getProperty(object, escapedPath));
+//=> '🍄 The princess is in another castle!'
+```
+*/
+export function escapePath(path: string): string;
