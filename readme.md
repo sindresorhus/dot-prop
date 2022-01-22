@@ -11,7 +11,7 @@ npm install dot-prop
 ## Usage
 
 ```js
-import {getProperty, setProperty, hasProperty, deleteProperty, escapePath} from 'dot-prop';
+import {getProperty, setProperty, hasProperty, deleteProperty} from 'dot-prop';
 
 // Getter
 getProperty({foo: {bar: 'unicorn'}}, 'foo.bar');
