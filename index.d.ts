@@ -112,7 +112,7 @@ export function deleteProperty(object: Record<string, any>, path: string): boole
 /**
 Escape special characters in a path. Useful for sanitizing user input.
 
-@param path The path to sanitize.
+@param path - The dot path to sanitize.
 
 @example
 ```
