@@ -245,6 +245,11 @@ test('setProperty', t => {
 			bar: true,
 		}],
 	});
+
+	const fixture7 = {foo: ['bar', 'baz']};
+	setProperty(fixture7, 'foo.length', 1);
+	t.is(fixture7.foo.length, 1);
+	t.deepEqual(fixture7, {foo: ['bar']});
 });
 
 test('deleteProperty', t => {

@@ -219,12 +219,10 @@ export function setProperty(object, path, value) {
 
 		assertNotStringIndex(object, key);
 
-		if (!isObject(object[key])) {
-			object[key] = typeof pathArray[index + 1] === 'number' ? [] : {};
-		}
-
 		if (index === pathArray.length - 1) {
 			object[key] = value;
+		} else if (!isObject(object[key])) {
+			object[key] = typeof pathArray[index + 1] === 'number' ? [] : {};
 		}
 
 		object = object[key];
