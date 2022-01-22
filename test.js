@@ -386,6 +386,8 @@ test('hasProperty', t => {
 test('escapePath', t => {
 	t.is(escapePath('foo.bar[0]'), 'foo\\.bar\\[0]');
 	t.is(escapePath('foo\\.bar[0]'), 'foo\\\\\\.bar\\[0]');
+	t.is(escapePath('foo\\\.bar[0]'), 'foo\\\\\\.bar\\[0]'); // eslint-disable-line no-useless-escape
+	t.is(escapePath('foo\\\\.bar[0]'), 'foo\\\\\\\\\\.bar\\[0]');
 	t.is(escapePath('foo\\\\.bar\\\\[0]'), 'foo\\\\\\\\\\.bar\\\\\\\\\\[0]');
 	t.is(escapePath('foo[0].bar'), 'foo\\[0]\\.bar');
 	t.is(escapePath('foo.bar[0].baz'), 'foo\\.bar\\[0]\\.baz');
