@@ -11,7 +11,7 @@ npm install dot-prop
 ## Usage
 
 ```js
-import {getProperty, setProperty, hasProperty, deleteProperty} from 'dot-prop';
+import {getProperty, setProperty, hasProperty, deleteProperty, escapePath} from 'dot-prop';
 
 // Getter
 getProperty({foo: {bar: 'unicorn'}}, 'foo.bar');
@@ -61,6 +61,17 @@ object.foo.bar = {x: 'y', y: 'x'};
 deleteProperty(object, 'foo.bar.x');
 console.log(object);
 //=> {foo: {bar: {y: 'x'}}}
+
+const object = {
+	foo: {
+		bar: ['👸🏻 You found me Mario!'],
+	},
+	'foo.bar[0]' : '🍄 The princess is in another castle!',
+};
+const escapedPath = escapePath('foo.bar[0]');
+
+console.log(getProperty(object, escapedPath));
+//=> '🍄 The princess is in another castle!'
 ```
 
 ## API
@@ -88,6 +99,10 @@ Returns a boolean.
 Delete the property at the given path.
 
 Returns a boolean of whether the property existed before being deleted.
+
+### escapePath(path)
+
+Escape special characters in a path. Useful for sanitizing user input.
 
 #### object
 
