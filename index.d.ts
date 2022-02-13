@@ -131,3 +131,28 @@ console.log(getProperty(object, escapedPath));
 ```
 */
 export function escapePath(path: string): string;
+
+/**
+Returns an iterable that yields with every path in `object`. Plain objects are iterated deeper and are not themselves yielded. Useful to help flatten an object for an API that only accepts key-value pairs.
+
+@param object - The object to iterate through.
+
+@example
+```
+import {getProperty, deepKeys} from 'dot-prop';
+
+const user = {
+	name: {
+		first: 'Richie',
+		last: 'Bendall',
+	},
+};
+
+for (const property of deepKeys(user)) {
+	console.log(`${property}: ${getProperty(user, property)}`);
+	//=> name.first: Richie
+	//=> name.last: Bendall
+}
+```
+*/
+export function deepKeys(object: unknown): Iterable<string>;

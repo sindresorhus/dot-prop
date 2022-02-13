@@ -1,5 +1,5 @@
 import {expectType, expectAssignable} from 'tsd';
-import {getProperty, setProperty, hasProperty, deleteProperty} from './index.js';
+import {getProperty, setProperty, hasProperty, deleteProperty, deepKeys} from './index.js';
 
 expectType<string>(getProperty({foo: {bar: 'unicorn'}}, 'foo.bar'));
 expectType<undefined>(getProperty({foo: {bar: 'a'}}, 'foo.notDefined.deep'));
@@ -16,3 +16,5 @@ expectType<typeof object>(setProperty(object, 'foo.bar', 'b'));
 expectType<boolean>(hasProperty({foo: {bar: 'unicorn'}}, 'foo.bar'));
 
 expectType<boolean>(deleteProperty({foo: {bar: 'a'}}, 'foo.bar'));
+
+expectType<Iterable<string>>(deepKeys({foo: {bar: 'a'}}));

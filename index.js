@@ -284,3 +284,27 @@ export function escapePath(path) {
 
 	return path.replace(/[\\.[]/g, '\\$&');
 }
+
+function * deepKeysIterator(object, currentPath) {
+	for (const [key, value] of Object.entries(object)) {
+		const property = typeof currentPath === 'undefined' ? escapePath(key) : `${currentPath}.${escapePath(key)}`;
+
+		if (isObject(value) && !Array.isArray(object)) {
+			yield * deepKeysIterator(value, property);
+		} else {
+			yield property;
+		}
+	}
+}
+
+export function deepKeys(object) {
+	return {
+		* [Symbol.iterator]() {
+			if (!isObject(object) || Array.isArray(object)) {
+				return;
+			}
+
+			yield * deepKeysIterator(object);
+		},
+	};
+}
