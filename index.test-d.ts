@@ -17,4 +17,4 @@ expectType<boolean>(hasProperty({foo: {bar: 'unicorn'}}, 'foo.bar'));
 
 expectType<boolean>(deleteProperty({foo: {bar: 'a'}}, 'foo.bar'));
 
-expectType<Iterable<string>>(deepKeys({foo: {bar: 'a'}}));
+expectType<string[]>(deepKeys({foo: {bar: 'a'}}));

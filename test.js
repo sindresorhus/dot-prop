@@ -408,7 +408,7 @@ test('escapePath', t => {
 });
 
 test('deepKeys', t => {
-	const object = {
+	t.deepEqual(deepKeys({
 		'a.b': {
 			c: {
 				d: [1, 2, 3],
@@ -418,30 +418,17 @@ test('deepKeys', t => {
 			'': {
 				a: 0,
 			},
-		}
-	};
-	const iterator = deepKeys(object);
-
-	t.deepEqual(deepKeys([...iterator], [
+		},
+	}), [
 		'a\\.b.c.d',
 		'a\\.b.c.e',
 		'a\\.b.c.f',
 		'a\\.b..a',
-	]));
+	]);
 
-	object['a.b'].c.g = '🦄';
-
-	t.deepEqual(deepKeys([...iterator], [
-		'a\\.b.c.d',
-		'a\\.b.c.e',
-		'a\\.b.c.f',
-		'a\\.b.c.g',
-		'a\\.b..a',
-	]));
-
-	t.deepEqual([...deepKeys([])], []);
-	t.deepEqual([...deepKeys(0)], []);
-})
+	t.deepEqual(deepKeys([]), []);
+	t.deepEqual(deepKeys(0), []);
+});
 
 test('prevent setting/getting `__proto__`', t => {
 	setProperty({}, '__proto__.unicorn', '🦄');

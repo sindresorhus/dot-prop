@@ -289,7 +289,7 @@ function * deepKeysIterator(object, currentPath = []) {
 	for (const [key, value] of Object.entries(object)) {
 		const newPath = [...currentPath, escapePath(key)];
 
-		if (isObject(value) && !Array.isArray(object)) {
+		if (isObject(value) && !Array.isArray(value)) {
 			yield * deepKeysIterator(value, newPath);
 		} else {
 			yield newPath.join('.');
@@ -298,13 +298,9 @@ function * deepKeysIterator(object, currentPath = []) {
 }
 
 export function deepKeys(object) {
-	return {
-		* [Symbol.iterator]() {
-			if (!isObject(object) || Array.isArray(object)) {
-				return;
-			}
+	if (!isObject(object) || Array.isArray(object)) {
+		return [];
+	}
 
-			yield * deepKeysIterator(object);
-		},
-	};
+	return [...deepKeysIterator(object)];
 }

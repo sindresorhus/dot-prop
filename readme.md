@@ -110,7 +110,7 @@ console.log(getProperty(object, escapedPath));
 
 ### deepKeys(object)
 
-Returns an iterable that yields with every path in `object`. Plain objects are iterated deeper and are not themselves yielded. Useful to help flatten an object for an API that only accepts key-value pairs or for a tagged template literal.
+Returns an array that contains every path in `object`. Plain objects are iterated deeper and are not themselves yielded. Useful to help flatten an object for an API that only accepts key-value pairs or for a tagged template literal.
 
 ```js
 import {getProperty, deepKeys} from 'dot-prop';

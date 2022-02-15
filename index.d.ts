@@ -133,7 +133,7 @@ console.log(getProperty(object, escapedPath));
 export function escapePath(path: string): string;
 
 /**
-Returns an iterable that yields with every path in `object`. Plain objects are iterated deeper and are not themselves yielded. Useful to help flatten an object for an API that only accepts key-value pairs or for a tagged template literal.
+Returns an array that contains every path in `object`. Plain objects are iterated deeper and are not themselves yielded. Useful to help flatten an object for an API that only accepts key-value pairs or for a tagged template literal.
 
 @param object - The object to iterate through.
 
@@ -155,4 +155,4 @@ for (const property of deepKeys(user)) {
 }
 ```
 */
-export function deepKeys(object: unknown): Iterable<string>;
+export function deepKeys(object: unknown): string[];
