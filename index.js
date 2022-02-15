@@ -286,21 +286,19 @@ export function escapePath(path) {
 }
 
 function * deepKeysIterator(object, currentPath = []) {
-	for (const [key, value] of Object.entries(object)) {
-		const newPath = [...currentPath, escapePath(key)];
-
-		if (isObject(value) && !Array.isArray(value)) {
-			yield * deepKeysIterator(value, newPath);
-		} else {
-			yield newPath.join('.');
+	if (!isObject(object) || Array.isArray(object)) {
+		if (currentPath.length > 0) {
+			yield currentPath.join('.');
 		}
+
+		return;
+	}
+
+	for (const [key, value] of Object.entries(object)) {
+		yield * deepKeysIterator(value, [...currentPath, escapePath(key)]);
 	}
 }
 
 export function deepKeys(object) {
-	if (!isObject(object) || Array.isArray(object)) {
-		return [];
-	}
-
 	return [...deepKeysIterator(object)];
 }
