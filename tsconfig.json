@@ -1,8 +1,12 @@
 {
-    "compilerOptions": {
-        "lib": ["es2020"],
-        "strict": true,
-        "noEmit": true
-    },
-    "include": ["*.ts"]
+	"compilerOptions": {
+		"lib": [
+			"es2020"
+		],
+		"strict": true,
+		"noEmit": true
+	},
+	"include": [
+		"*.ts"
+	]
 }
