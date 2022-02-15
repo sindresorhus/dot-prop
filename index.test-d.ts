@@ -8,6 +8,7 @@ expectTypeOf(
 ).toBeString();
 expectTypeOf(
 	getProperty({foo: {'dot.dot': 'unicorn'}}, 'foo.dot\\.dot'),
+	// @ts-expect-error type-fest's `Get` not smart enough to deal with escaped dots
 ).toEqualTypeOf<string>();
 
 const object = {foo: {bar: 'a'}};
