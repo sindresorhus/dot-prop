@@ -285,17 +285,41 @@ export function escapePath(path) {
 	return path.replace(/[\\.[]/g, '\\$&');
 }
 
+// The keys returned by Object.entries() for arrays are strings
+function entries(value) {
+	if (Array.isArray(value)) {
+		return value.map((value, index) => [index, value]);
+	}
+
+	return Object.entries(value);
+}
+
+function stringifyPath(pathSegments) {
+	let result = '';
+
+	for (let [index, segment] of entries(pathSegments)) {
+		if (typeof segment === 'number') {
+			result += `[${segment}]`;
+		} else {
+			segment = escapePath(segment);
+			result += index === 0 ? segment : `.${segment}`;
+		}
+	}
+
+	return result;
+}
+
 function * deepKeysIterator(object, currentPath = []) {
-	if (!isObject(object) || Array.isArray(object)) {
+	if (!isObject(object)) {
 		if (currentPath.length > 0) {
-			yield currentPath.join('.');
+			yield stringifyPath(currentPath);
 		}
 
 		return;
 	}
 
-	for (const [key, value] of Object.entries(object)) {
-		yield * deepKeysIterator(value, [...currentPath, escapePath(key)]);
+	for (const [key, value] of entries(object)) {
+		yield * deepKeysIterator(value, [...currentPath, key]);
 	}
 }
 

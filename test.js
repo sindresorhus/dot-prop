@@ -419,11 +419,17 @@ test('deepKeys', t => {
 				a: 0,
 			},
 		},
+		'': {
+			a: 0,
+		},
 	}), [
-		'a\\.b.c.d',
+		'a\\.b.c.d[0]',
+		'a\\.b.c.d[1]',
+		'a\\.b.c.d[2]',
 		'a\\.b.c.e',
 		'a\\.b.c.f',
 		'a\\.b..a',
+		'.a',
 	]);
 
 	t.deepEqual(deepKeys([]), []);
