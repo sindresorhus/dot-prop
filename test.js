@@ -408,7 +408,7 @@ test('escapePath', t => {
 });
 
 test('deepKeys', t => {
-	t.deepEqual(deepKeys({
+	const object = {
 		'a.b': {
 			c: {
 				d: [1, 2, 3],
@@ -422,7 +422,10 @@ test('deepKeys', t => {
 		'': {
 			a: 0,
 		},
-	}), [
+	};
+	const keys = deepKeys(object);
+
+	t.deepEqual(keys, [
 		'a\\.b.c.d[0]',
 		'a\\.b.c.d[1]',
 		'a\\.b.c.d[2]',
@@ -431,6 +434,10 @@ test('deepKeys', t => {
 		'a\\.b..a',
 		'.a',
 	]);
+
+	for (const key of keys) {
+		t.true(hasProperty(object, key));
+	}
 
 	t.deepEqual(deepKeys([]), []);
 	t.deepEqual(deepKeys(0), []);
