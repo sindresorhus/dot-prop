@@ -31,7 +31,7 @@ export function getProperty<ObjectType, PathType extends string, DefaultValue = 
 	object: ObjectType,
 	path: PathType,
 	defaultValue?: DefaultValue
-): ObjectType extends Record<string, unknown> | unknown[] ? (Get<ObjectType, PathType> extends unknown ? DefaultValue : Get<ObjectType, PathType>) : undefined;
+): ObjectType extends Record<string, unknown> | unknown[] ? (unknown extends Get<ObjectType, PathType> ? DefaultValue : Get<ObjectType, PathType>) : undefined;
 
 /**
 Set the property at the given path to the given value.
