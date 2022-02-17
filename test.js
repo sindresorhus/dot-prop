@@ -1,5 +1,5 @@
 import test from 'ava';
-import {getProperty, setProperty, hasProperty, deleteProperty, escapePath} from './index.js';
+import {getProperty, setProperty, hasProperty, deleteProperty, escapePath, deepKeys} from './index.js';
 
 test('getProperty', t => {
 	const fixture1 = {foo: {bar: 1}};
@@ -405,6 +405,42 @@ test('escapePath', t => {
 		instanceOf: TypeError,
 		message: 'Expected a string',
 	});
+});
+
+test('deepKeys', t => {
+	const object = {
+		'a.b': {
+			c: {
+				d: [1, 2, 3],
+				e: '🦄',
+				f: 0,
+			},
+			'': {
+				a: 0,
+			},
+		},
+		'': {
+			a: 0,
+		},
+	};
+	const keys = deepKeys(object);
+
+	t.deepEqual(keys, [
+		'a\\.b.c.d[0]',
+		'a\\.b.c.d[1]',
+		'a\\.b.c.d[2]',
+		'a\\.b.c.e',
+		'a\\.b.c.f',
+		'a\\.b..a',
+		'.a',
+	]);
+
+	for (const key of keys) {
+		t.true(hasProperty(object, key));
+	}
+
+	t.deepEqual(deepKeys([]), []);
+	t.deepEqual(deepKeys(0), []);
 });
 
 test('prevent setting/getting `__proto__`', t => {

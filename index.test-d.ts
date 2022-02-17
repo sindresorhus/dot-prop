@@ -1,5 +1,5 @@
 import {expectTypeOf} from 'expect-type';
-import {getProperty, setProperty, hasProperty, deleteProperty} from './index.js';
+import {getProperty, setProperty, hasProperty, deleteProperty, deepKeys} from './index.js';
 
 expectTypeOf(getProperty({foo: {bar: 'unicorn'}}, 'foo.bar')).toBeString();
 expectTypeOf(getProperty({foo: {bar: 'a'}}, 'foo.notDefined.deep')).toBeUndefined();
@@ -17,3 +17,5 @@ expectTypeOf(setProperty(object, 'foo.bar', 'b')).toEqualTypeOf(object);
 expectTypeOf(hasProperty({foo: {bar: 'unicorn'}}, 'foo.bar')).toEqualTypeOf<boolean>();
 
 expectTypeOf(deleteProperty({foo: {bar: 'a'}}, 'foo.bar')).toEqualTypeOf<boolean>();
+
+expectTypeOf(deepKeys({foo: {bar: 'a'}})).toEqualTypeOf<string[]>();

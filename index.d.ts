@@ -131,3 +131,30 @@ console.log(getProperty(object, escapedPath));
 ```
 */
 export function escapePath(path: string): string;
+
+/**
+Returns an array of every path. Plain objects are deeply recursed and are not themselves included.
+
+This can be useful to help flatten an object for an API that only accepts key-value pairs or for a tagged template literal.
+
+@param object - The object to iterate through.
+
+@example
+```
+import {getProperty, deepKeys} from 'dot-prop';
+
+const user = {
+	name: {
+		first: 'Richie',
+		last: 'Bendall',
+	},
+};
+
+for (const property of deepKeys(user)) {
+	console.log(`${property}: ${getProperty(user, property)}`);
+	//=> name.first: Richie
+	//=> name.last: Bendall
+}
+```
+*/
+export function deepKeys(object: unknown): string[];
