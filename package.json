@@ -37,13 +37,13 @@
 		"dotty"
 	],
 	"dependencies": {
-		"type-fest": "^2.10.0"
+		"type-fest": "^2.11.2"
 	},
 	"devDependencies": {
 		"ava": "^4.0.1",
 		"benchmark": "^2.1.4",
 		"expect-type": "^0.13.0",
 		"typescript": "^4.5.5",
-		"xo": "^0.47.0"
+		"xo": "^0.48.0"
 	}
 }
