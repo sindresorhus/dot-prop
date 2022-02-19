@@ -411,7 +411,9 @@ test('deepKeys', t => {
 	const object = {
 		'a.b': {
 			c: {
-				d: [1, 2, 3],
+				d: [1, 2, {
+					g: 3,
+				}],
 				e: '🦄',
 				f: 0,
 			},
@@ -428,7 +430,7 @@ test('deepKeys', t => {
 	t.deepEqual(keys, [
 		'a\\.b.c.d[0]',
 		'a\\.b.c.d[1]',
-		'a\\.b.c.d[2]',
+		'a\\.b.c.d[2].g',
 		'a\\.b.c.e',
 		'a\\.b.c.f',
 		'a\\.b..a',

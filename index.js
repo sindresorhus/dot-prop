@@ -19,7 +19,7 @@ function getPathSegments(path) {
 
 	for (const character of path) {
 		switch (character) {
-			case '\\':
+			case '\\': {
 				if (currentPart === 'index') {
 					throw new Error('Invalid character in an index');
 				}
@@ -35,8 +35,9 @@ function getPathSegments(path) {
 				currentPart = 'property';
 				isIgnoring = !isIgnoring;
 				break;
+			}
 
-			case '.':
+			case '.': {
 				if (currentPart === 'index') {
 					throw new Error('Invalid character in an index');
 				}
@@ -60,8 +61,9 @@ function getPathSegments(path) {
 				currentSegment = '';
 				currentPart = 'property';
 				break;
+			}
 
-			case '[':
+			case '[': {
 				if (currentPart === 'index') {
 					throw new Error('Invalid character in an index');
 				}
@@ -88,8 +90,9 @@ function getPathSegments(path) {
 
 				currentPart = 'index';
 				break;
+			}
 
-			case ']':
+			case ']': {
 				if (currentPart === 'index') {
 					parts.push(Number.parseInt(currentSegment, 10));
 					currentSegment = '';
@@ -102,8 +105,9 @@ function getPathSegments(path) {
 				}
 
 				// Falls through
+			}
 
-			default:
+			default: {
 				if (currentPart === 'index' && !digits.has(character)) {
 					throw new Error('Invalid character in an index');
 				}
@@ -122,6 +126,7 @@ function getPathSegments(path) {
 				}
 
 				currentSegment += character;
+			}
 		}
 	}
 
@@ -149,7 +154,7 @@ function getPathSegments(path) {
 
 			break;
 		}
-	// No default
+		// No default
 	}
 
 	return parts;
