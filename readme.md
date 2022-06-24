@@ -43,7 +43,7 @@ setProperty(object, 'foo.baz', 'x');
 console.log(object);
 //=> {foo: {bar: 'b', baz: 'x'}}
 
-setProperty(object, 'foo.biz.0', 'a');
+setProperty(object, 'foo.biz[0]', 'a');
 console.log(object);
 //=> {foo: {bar: 'b', baz: 'x', biz: ['a']}}
 
