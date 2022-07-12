@@ -397,6 +397,10 @@ test('escapePath', t => {
 	t.is(escapePath('foo[0].bar'), 'foo\\[0]\\.bar');
 	t.is(escapePath('foo.bar[0].baz'), 'foo\\.bar\\[0]\\.baz');
 	t.is(escapePath('[0].foo'), '\\[0]\\.foo');
+	// TODO: The following three tests assume that backslashes with no effect are escaped. Update when this changes.
+	t.is(escapePath('\\foo'), '\\\\foo');
+	t.is(escapePath('foo\\'), 'foo\\\\');
+	t.is(escapePath('foo\\\\'), 'foo\\\\\\\\');
 	t.is(escapePath(''), '');
 
 	t.throws(() => {

@@ -282,6 +282,7 @@ export function hasProperty(object, path) {
 	return true;
 }
 
+// TODO: Backslashes with no effect should not be escaped
 export function escapePath(path) {
 	if (typeof path !== 'string') {
 		throw new TypeError('Expected a string');
