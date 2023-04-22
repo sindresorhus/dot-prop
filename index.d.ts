@@ -1,4 +1,4 @@
-import {Get} from 'type-fest';
+import {type Get} from 'type-fest';
 
 /**
 Get the value of the property at the given path.

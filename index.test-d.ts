@@ -7,7 +7,7 @@ expectTypeOf(
 	getProperty({foo: {bar: 'a'}}, 'foo.notDefined.deep', 'default value'),
 ).toBeString();
 expectTypeOf(
-	getProperty({foo: {'dot.dot': 'unicorn'}}, 'foo.dot\\.dot'),
+	getProperty({foo: {'dot.dot': 'unicorn'}}, 'foo.dot\\.dot'), // eslint-disable-line @typescript-eslint/naming-convention
 	// @ts-expect-error type-fest's `Get` not smart enough to deal with escaped dots
 ).toEqualTypeOf<string>();
 
