@@ -133,7 +133,7 @@ console.log(getProperty(object, escapedPath));
 export function escapePath(path: string): string;
 
 /**
-Returns an array of every path. Plain objects are deeply recursed and are not themselves included.
+Returns an array of every path. Non-empty plain objects and arrays are deeply recursed and are not themselves included.
 
 This can be useful to help flatten an object for an API that only accepts key-value pairs or for a tagged template literal.
 
@@ -148,12 +148,16 @@ const user = {
 		first: 'Richie',
 		last: 'Bendall',
 	},
+	activeTasks: [],
+	currentProject: null
 };
 
 for (const property of deepKeys(user)) {
 	console.log(`${property}: ${getProperty(user, property)}`);
 	//=> name.first: Richie
 	//=> name.last: Bendall
+	//=> activeTasks: []
+	//=> currentProject: null
 }
 ```
 */

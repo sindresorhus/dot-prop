@@ -3,6 +3,8 @@ const isObject = value => {
 	return value !== null && (type === 'object' || type === 'function');
 };
 
+const isEmptyObject = value => isObject(value) && Object.keys(value).length === 0;
+
 const disallowedKeys = new Set([
 	'__proto__',
 	'prototype',
@@ -316,7 +318,7 @@ function stringifyPath(pathSegments) {
 }
 
 function * deepKeysIterator(object, currentPath = []) {
-	if (!isObject(object)) {
+	if (!isObject(object) || isEmptyObject(object)) {
 		if (currentPath.length > 0) {
 			yield stringifyPath(currentPath);
 		}

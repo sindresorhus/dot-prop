@@ -413,6 +413,8 @@ test('escapePath', t => {
 
 test('deepKeys', t => {
 	const object = {
+		eo: {},
+		ea: [],
 		'a.b': {
 			c: {
 				d: [1, 2, {
@@ -420,6 +422,11 @@ test('deepKeys', t => {
 				}],
 				e: '🦄',
 				f: 0,
+				h: {},
+				i: [],
+				nu: null,
+				na: Number.NaN,
+				un: undefined,
 			},
 			'': {
 				a: 0,
@@ -432,11 +439,18 @@ test('deepKeys', t => {
 	const keys = deepKeys(object);
 
 	t.deepEqual(keys, [
+		'eo',
+		'ea',
 		'a\\.b.c.d[0]',
 		'a\\.b.c.d[1]',
 		'a\\.b.c.d[2].g',
 		'a\\.b.c.e',
 		'a\\.b.c.f',
+		'a\\.b.c.h',
+		'a\\.b.c.i',
+		'a\\.b.c.nu',
+		'a\\.b.c.na',
+		'a\\.b.c.un',
 		'a\\.b..a',
 		'.a',
 	]);
