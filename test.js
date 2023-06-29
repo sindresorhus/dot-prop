@@ -436,6 +436,7 @@ test('deepKeys', t => {
 			a: 0,
 		},
 	};
+
 	const keys = deepKeys(object);
 
 	t.deepEqual(keys, [
@@ -461,6 +462,20 @@ test('deepKeys', t => {
 
 	t.deepEqual(deepKeys([]), []);
 	t.deepEqual(deepKeys(0), []);
+});
+
+test('deepKeys - does not throw on sparse array', t => {
+	const object = {
+		sparse: [1,,3], // eslint-disable-line no-sparse-arrays, comma-spacing
+	};
+
+	const keys = deepKeys(object);
+
+	t.deepEqual(keys, [
+		'sparse[0]',
+		'sparse[1]',
+		'sparse[2]',
+	]);
 });
 
 test('prevent setting/getting `__proto__`', t => {

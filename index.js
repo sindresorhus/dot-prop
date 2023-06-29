@@ -296,7 +296,8 @@ export function escapePath(path) {
 // The keys returned by Object.entries() for arrays are strings
 function entries(value) {
 	if (Array.isArray(value)) {
-		return value.map((value, index) => [index, value]);
+		// We use `[...value]` to convert sparse entries to normal ones.
+		return [...value].map((value, index) => [index, value]);
 	}
 
 	return Object.entries(value);
