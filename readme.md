@@ -135,7 +135,7 @@ for (const property of deepKeys(user)) {
 }
 ```
 
-Sparse arrays are supported, but holes are filled. In general, [avoid using sparse arrays](https://github.com/sindresorhus/dot-prop/issues/109#issuecomment-1614819869).
+Sparse arrays are supported. In general, [avoid using sparse arrays](https://github.com/sindresorhus/dot-prop/issues/109#issuecomment-1614819869).
 
 #### object
 

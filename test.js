@@ -473,7 +473,6 @@ test('deepKeys - does not throw on sparse array', t => {
 
 	t.deepEqual(keys, [
 		'sparse[0]',
-		'sparse[1]',
 		'sparse[2]',
 	]);
 });

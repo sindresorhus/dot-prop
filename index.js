@@ -295,12 +295,12 @@ export function escapePath(path) {
 
 // The keys returned by Object.entries() for arrays are strings
 function entries(value) {
+	const result = Object.entries(value);
 	if (Array.isArray(value)) {
-		// We use `[...value]` to convert sparse entries to normal ones.
-		return [...value].map((value, index) => [index, value]);
+		return result.map(([key, value]) => [Number(key), value]);
 	}
 
-	return Object.entries(value);
+	return result;
 }
 
 function stringifyPath(pathSegments) {
