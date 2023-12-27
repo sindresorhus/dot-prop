@@ -213,7 +213,7 @@ getProperty({foo: [{bar: 'unicorn'}]}, 'foo[0].bar');
 //=> 'unicorn'
 ```
 */
-export function getProperty<ObjectType, PathType extends string, DefaultValue = undefined, ReturnType = ObjectType extends AnObject | AFunction ? (unknown extends Get<ObjectType, PathType> ? DefaultValue : Get<ObjectType, PathType>) : undefined>(
+export function getProperty<ObjectType, PathType extends string, DefaultValue = undefined, ReturnType = ObjectType extends AFunction | AnArray | AnObject ? (unknown extends Get<ObjectType, PathType> ? DefaultValue : Get<ObjectType, PathType>) : undefined>(
 	object: ObjectType,
 	path?: PathType,
 	defaultValue?: DefaultValue,
@@ -371,7 +371,7 @@ hasProperty({foo: {bar: 'unicorn'}}, 'foo.bar');
 //=> true
 ```
 */
-export function hasProperty(object: AnObject | AFunction | undefined, path?: string): boolean {
+export function hasProperty(object: AFunction | AnArray | AnObject | undefined, path?: string): boolean {
 	if (!isObject(object) || typeof path !== 'string') {
 		return false;
 	}
