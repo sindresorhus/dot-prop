@@ -1,11 +1,15 @@
+/* eslint-disable @typescript-eslint/no-unsafe-return */
+/* eslint-disable @typescript-eslint/no-empty-function */
+/* eslint-disable @typescript-eslint/naming-convention */
+/* eslint-disable @typescript-eslint/no-confusing-void-expression */
 import test from 'ava';
-import {getProperty, setProperty, hasProperty, deleteProperty, escapePath, deepKeys} from './index.js';
+import {getProperty, setProperty, hasProperty, deleteProperty, escapePath, deepKeys} from '../source/index.js';
 
 test('getProperty', t => {
-	const fixture1 = {foo: {bar: 1}};
+	const fixture1: any = {foo: {bar: 1}};
 	t.is(getProperty(fixture1), fixture1);
 	fixture1[''] = 'foo';
-	t.is(getProperty(fixture1, ''), 'foo');
+	t.is(getProperty(fixture1, ''), 'foo' as any);
 	t.is(getProperty(fixture1, 'foo'), fixture1.foo);
 	t.is(getProperty({foo: 1}, 'foo'), 1);
 	t.is(getProperty({foo: null}, 'foo'), null);
@@ -36,18 +40,18 @@ test('getProperty', t => {
 		value: 'bar',
 		enumerable: false,
 	});
-	t.is(getProperty(fixture2, 'foo'), 'bar');
-	t.is(getProperty({}, 'hasOwnProperty'), Object.prototype.hasOwnProperty);
+	t.is(getProperty(fixture2, 'foo'), 'bar' as any);
+	t.is(getProperty({}, 'hasOwnProperty'), Object.prototype.hasOwnProperty as any);
 
 	function fn() {}
 	fn.foo = {bar: 1};
-	t.is(getProperty(fn), fn);
+	t.is(getProperty(fn), fn as any);
 	t.is(getProperty(fn, 'foo'), fn.foo);
 	t.is(getProperty(fn, 'foo.bar'), 1);
 
 	const f3 = {foo: null};
 	t.is(getProperty(f3, 'foo.bar'), undefined);
-	t.is(getProperty(f3, 'foo.bar', 'some value'), 'some value');
+	t.is(getProperty(f3, 'foo.bar', 'some value'), 'some value' as any);
 
 	t.true(getProperty({'foo.baz': {bar: true}}, 'foo\\.baz.bar'));
 	t.true(getProperty({'fo.ob.az': {bar: true}}, 'fo\\.ob\\.az.bar'));
@@ -57,10 +61,10 @@ test('getProperty', t => {
 	t.false(getProperty([], 'foo.bar', false));
 	t.false(getProperty(undefined, 'foo.bar', false));
 
-	class F4Class {}
-	F4Class.prototype.foo = 1;
+	class F4Class {} // eslint-disable-line @typescript-eslint/no-extraneous-class
+	(F4Class.prototype as any).foo = 1;
 	const f4 = new F4Class();
-	t.is(getProperty(f4, 'foo'), 1); // #46
+	t.is(getProperty(f4, 'foo'), 1 as any); // #46
 
 	t.true(getProperty({'': {'': {'': true}}}, '..'));
 	t.true(getProperty({'': {'': true}}, '.'));
@@ -162,7 +166,7 @@ test('getProperty - with array indexes', t => {
 
 test('setProperty', t => {
 	const func = () => 'test';
-	let fixture1 = {};
+	let fixture1: Record<PropertyKey, any> = {};
 
 	const o1 = setProperty(fixture1, 'foo', 2);
 	t.is(fixture1.foo, 2);
@@ -195,13 +199,13 @@ test('setProperty', t => {
 
 	function fn() {}
 	setProperty(fn, 'foo.bar', 1);
-	t.is(fn.foo.bar, 1);
+	t.is((fn as any).foo.bar, 1);
 
 	fixture1.fn = fn;
 	setProperty(fixture1, 'fn.bar.baz', 2);
 	t.is(fixture1.fn.bar.baz, 2);
 
-	const fixture2 = {foo: null};
+	const fixture2: Record<PropertyKey, any> = {foo: null};
 	setProperty(fixture2, 'foo.bar', 2);
 	t.is(fixture2.foo.bar, 2);
 
@@ -216,11 +220,11 @@ test('setProperty', t => {
 	t.true(fixture1['fo.ob.ar'].baz);
 
 	const fixture4 = 'noobject';
-	const output4 = setProperty(fixture4, 'foo.bar', 2);
+	const output4 = setProperty((fixture4 as any), 'foo.bar', 2); // eslint-disable-line @typescript-eslint/no-unsafe-assignment
 	t.is(fixture4, 'noobject');
-	t.is(output4, fixture4);
+	t.is(output4, fixture4 as any);
 
-	const fixture5 = [];
+	const fixture5: any[] = [];
 
 	setProperty(fixture5, '[1]', true);
 	t.is(fixture5[1], true);
@@ -236,7 +240,7 @@ test('setProperty', t => {
 		message: 'Cannot use string index',
 	});
 
-	const fixture6 = {};
+	const fixture6: Record<PropertyKey, any> = {};
 
 	setProperty(fixture6, 'foo[0].bar', true);
 	t.true(fixture6.foo[0].bar);
@@ -262,7 +266,7 @@ test('deleteProperty', t => {
 		c: 'c',
 		func,
 	};
-	const fixture1 = {
+	const fixture1: Record<PropertyKey, any> = {
 		foo: {
 			bar: {
 				baz: inner,
@@ -294,7 +298,7 @@ test('deleteProperty', t => {
 	t.true(deleteProperty(fixture1, 'foo\\.bar.baz'));
 	t.is(fixture1['foo.bar'].baz, undefined);
 
-	const fixture2 = {};
+	const fixture2: Record<PropertyKey, any> = {};
 	setProperty(fixture2, 'foo.bar\\.baz', true);
 	t.true(fixture2.foo['bar.baz']);
 	t.true(deleteProperty(fixture2, 'foo.bar\\.baz'));
@@ -334,7 +338,7 @@ test('deleteProperty', t => {
 
 	deleteProperty(fixture5, 'foo[0].bar[0]');
 
-	const fixtureArray = [];
+	const fixtureArray: unknown[] = [];
 	fixtureArray[1] = 'bar';
 
 	t.deepEqual(fixture5, {
@@ -404,7 +408,7 @@ test('escapePath', t => {
 	t.is(escapePath(''), '');
 
 	t.throws(() => {
-		escapePath(0);
+		escapePath(0 as unknown as string);
 	}, {
 		instanceOf: TypeError,
 		message: 'Expected a string',
@@ -466,7 +470,7 @@ test('deepKeys', t => {
 
 test('deepKeys - does not throw on sparse array', t => {
 	const object = {
-		sparse: [1,,3], // eslint-disable-line no-sparse-arrays, comma-spacing
+		sparse: [1,,3], // eslint-disable-line no-sparse-arrays
 	};
 
 	const keys = deepKeys(object);
@@ -479,7 +483,7 @@ test('deepKeys - does not throw on sparse array', t => {
 
 test('prevent setting/getting `__proto__`', t => {
 	setProperty({}, '__proto__.unicorn', '🦄');
-	t.not({}.unicorn, '🦄'); // eslint-disable-line no-use-extend-native/no-use-extend-native
+	t.not(({} as Record<PropertyKey, unknown>).unicorn, '🦄'); // eslint-disable-line @typescript-eslint/consistent-type-assertions
 
 	t.is(getProperty({}, '__proto__'), undefined);
 });
