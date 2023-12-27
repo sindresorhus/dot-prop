@@ -11,18 +11,24 @@
 		"url": "https://sindresorhus.com"
 	},
 	"type": "module",
-	"exports": "./index.js",
+	"exports": {
+		"types": "./dist/index.d.ts",
+		"default": "./dist/index.js"
+	},
+	"sideEffects": false,
 	"engines": {
 		"node": ">=16"
 	},
 	"scripts": {
-		"test": "xo && ava && tsc",
-		"bench": "node benchmark.js"
+		"build": "del-cli dist && tsc",
+		"test": "xo && ava && del-cli dist && tsc && tsd",
+		"bench": "node --import=tsx/esm bench.ts",
+		"prepublishOnly": "del-cli dist && tsc"
 	},
 	"files": [
-		"index.js",
-		"index.d.ts"
+		"dist"
 	],
+	"types": "dist/index.d.ts",
 	"keywords": [
 		"object",
 		"prop",
@@ -37,13 +43,37 @@
 		"dotty"
 	],
 	"dependencies": {
-		"type-fest": "^3.8.0"
+		"type-fest": "^4.8.3"
 	},
 	"devDependencies": {
-		"ava": "^5.2.0",
+		"@sindresorhus/tsconfig": "^5.0.0",
+		"@types/benchmark": "^2.1.5",
+		"ava": "^6.0.1",
 		"benchmark": "^2.1.4",
-		"expect-type": "^0.15.0",
-		"typescript": "^5.0.4",
-		"xo": "^0.54.1"
+		"del-cli": "^5.1.0",
+		"expect-type": "^0.17.3",
+		"tsd": "^0.30.1",
+		"tsx": "^4.7.0",
+		"typescript": "^5.3.3",
+		"xo": "^0.56.0"
+	},
+	"ava": {
+		"workerThreads": false,
+		"files": [
+			"test/**"
+		],
+		"extensions": {
+			"ts": "module"
+		},
+		"nodeArguments": [
+			"--import=tsx/esm"
+		]
+	},
+	"xo": {
+		"rules": {
+			"@typescript-eslint/naming-convention": "warn",
+			"@typescript-eslint/prefer-nullish-coalescing": "warn",
+			"@typescript-eslint/no-dynamic-delete": "warn"
+		}
 	}
 }
