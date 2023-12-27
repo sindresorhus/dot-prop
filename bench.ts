@@ -1,5 +1,6 @@
+/* eslint-disable @typescript-eslint/naming-convention */
 import Benchmark from 'benchmark';
-import {getProperty, setProperty, hasProperty, deleteProperty} from './index.js';
+import {getProperty, setProperty, hasProperty, deleteProperty} from './source/index.js';
 
 const suite = new Benchmark.Suite();
 
@@ -34,7 +35,7 @@ suite
 		getProperty(fixture2, 'foo');
 		getProperty({}, 'hasOwnProperty');
 
-		function fn() {}
+		function fn() {} // eslint-disable-line @typescript-eslint/no-empty-function
 		fn.foo = {bar: 1};
 		getProperty(fn);
 		getProperty(fn, 'foo');
@@ -53,7 +54,7 @@ suite
 	})
 	.add('setProperty', () => {
 		const func = () => 'test';
-		let fixture1 = {};
+		let fixture1: Record<PropertyKey, unknown> = {};
 
 		setProperty(fixture1, 'foo', 2);
 
@@ -74,7 +75,7 @@ suite
 
 		setProperty(fixture1, 'foo.function', func);
 
-		function fn() {}
+		function fn() {} // eslint-disable-line @typescript-eslint/no-empty-function
 		setProperty(fn, 'foo.bar', 1);
 
 		fixture1.fn = fn;
@@ -102,7 +103,7 @@ suite
 		hasProperty({foo: {bar: {baz: null}}}, 'foo.bar.baz');
 		hasProperty({foo: {bar: 'a'}}, 'foo.fake.fake2');
 
-		function fn() {}
+		function fn() {} // eslint-disable-line @typescript-eslint/no-empty-function
 		fn.foo = {bar: 1};
 		hasProperty(fn);
 		hasProperty(fn, 'foo');
@@ -144,7 +145,7 @@ suite
 		setProperty(fixture1, 'foo\\.bar.baz', true);
 		deleteProperty(fixture1, 'foo\\.bar.baz');
 
-		const fixture2 = {};
+		const fixture2: Record<PropertyKey, unknown> = {};
 		setProperty(fixture2, 'foo.bar\\.baz', true);
 		deleteProperty(fixture2, 'foo.bar\\.baz');
 
