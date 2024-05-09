@@ -37,7 +37,7 @@
 		"dotty"
 	],
 	"dependencies": {
-		"type-fest": "^3.8.0"
+		"type-fest": "^4.10.2"
 	},
 	"devDependencies": {
 		"ava": "^5.2.0",
