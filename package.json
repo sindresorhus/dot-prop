@@ -1,6 +1,6 @@
 {
 	"name": "dot-prop",
-	"version": "8.0.2",
+	"version": "9.0.0",
 	"description": "Get, set, or delete a property from a nested object using a dot path",
 	"license": "MIT",
 	"repository": "sindresorhus/dot-prop",
