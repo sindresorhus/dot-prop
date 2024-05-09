@@ -290,7 +290,7 @@ export function escapePath(path) {
 		throw new TypeError('Expected a string');
 	}
 
-	return path.replace(/[\\.[]/g, '\\$&');
+	return path.replaceAll(/[\\.[]/g, '\\$&');
 }
 
 // The keys returned by Object.entries() for arrays are strings

@@ -1,5 +1,12 @@
 import test from 'ava';
-import {getProperty, setProperty, hasProperty, deleteProperty, escapePath, deepKeys} from './index.js';
+import {
+	getProperty,
+	setProperty,
+	hasProperty,
+	deleteProperty,
+	escapePath,
+	deepKeys,
+} from './index.js';
 
 test('getProperty', t => {
 	const fixture1 = {foo: {bar: 1}};
@@ -25,9 +32,11 @@ test('getProperty', t => {
 	t.true(getProperty({'foo\\bar': true}, 'foo\\bar'));
 	t.true(getProperty({'\\': {foo: true}}, '\\\\.foo'));
 	t.true(getProperty({'bar\\.': true}, 'bar\\\\\\.'));
-	t.true(getProperty({'foo\\': {
-		bar: true,
-	}}, 'foo\\\\.bar'));
+	t.true(getProperty({
+		'foo\\': {
+			bar: true,
+		},
+	}, 'foo\\\\.bar'));
 	t.is(getProperty({foo: 1}, 'foo.bar'), undefined);
 	t.true(getProperty({'foo\\': true}, 'foo\\'));
 
@@ -39,11 +48,11 @@ test('getProperty', t => {
 	t.is(getProperty(fixture2, 'foo'), 'bar');
 	t.is(getProperty({}, 'hasOwnProperty'), Object.prototype.hasOwnProperty);
 
-	function fn() {}
-	fn.foo = {bar: 1};
-	t.is(getProperty(fn), fn);
-	t.is(getProperty(fn, 'foo'), fn.foo);
-	t.is(getProperty(fn, 'foo.bar'), 1);
+	function function_() {}
+	function_.foo = {bar: 1};
+	t.is(getProperty(function_), function_);
+	t.is(getProperty(function_, 'foo'), function_.foo);
+	t.is(getProperty(function_, 'foo.bar'), 1);
 
 	const f3 = {foo: null};
 	t.is(getProperty(f3, 'foo.bar'), undefined);
@@ -135,9 +144,11 @@ test('getProperty - with array indexes', t => {
 	t.false(getProperty([true], '0', false));
 
 	t.false(getProperty({foo: [true]}, 'foo.0', false));
-	t.true(getProperty({foo: {
-		0: true,
-	}}, 'foo.0'));
+	t.true(getProperty({
+		foo: {
+			0: true,
+		},
+	}, 'foo.0'));
 
 	t.true(getProperty([{
 		'[1]': true,
@@ -161,7 +172,7 @@ test('getProperty - with array indexes', t => {
 });
 
 test('setProperty', t => {
-	const func = () => 'test';
+	const function_ = () => 'test';
 	let fixture1 = {};
 
 	const o1 = setProperty(fixture1, 'foo', 2);
@@ -190,14 +201,14 @@ test('setProperty', t => {
 	setProperty(fixture1, 'foo.fake.fake2', 'fake');
 	t.is(fixture1.foo.fake.fake2, 'fake');
 
-	setProperty(fixture1, 'foo.function', func);
-	t.is(fixture1.foo.function, func);
+	setProperty(fixture1, 'foo.function', function_);
+	t.is(fixture1.foo.function, function_);
 
-	function fn() {}
-	setProperty(fn, 'foo.bar', 1);
-	t.is(fn.foo.bar, 1);
+	function function__() {}
+	setProperty(function__, 'foo.bar', 1);
+	t.is(function__.foo.bar, 1);
 
-	fixture1.fn = fn;
+	fixture1.fn = function__;
 	setProperty(fixture1, 'fn.bar.baz', 2);
 	t.is(fixture1.fn.bar.baz, 2);
 
@@ -253,14 +264,14 @@ test('setProperty', t => {
 });
 
 test('deleteProperty', t => {
-	const func = () => 'test';
-	func.foo = 'bar';
+	const function_ = () => 'test';
+	function_.foo = 'bar';
 
 	const inner = {
 		a: 'a',
 		b: 'b',
 		c: 'c',
-		func,
+		func: function_,
 	};
 	const fixture1 = {
 		foo: {
@@ -285,7 +296,7 @@ test('deleteProperty', t => {
 	t.true(deleteProperty(fixture1, 'foo.bar.baz.func.foo'));
 	t.is(fixture1.foo.bar.baz.func.foo, undefined);
 
-	t.is(fixture1.foo.bar.baz.func, func);
+	t.is(fixture1.foo.bar.baz.func, function_);
 	t.true(deleteProperty(fixture1, 'foo.bar.baz.func'));
 	t.is(fixture1.foo.bar.baz.func, undefined);
 
@@ -362,11 +373,11 @@ test('hasProperty', t => {
 	t.false(hasProperty({foo: null}, 'foo.bar'));
 	t.false(hasProperty({foo: ''}, 'foo.bar'));
 
-	function fn() {}
-	fn.foo = {bar: 1};
-	t.false(hasProperty(fn));
-	t.true(hasProperty(fn, 'foo'));
-	t.true(hasProperty(fn, 'foo.bar'));
+	function function_() {}
+	function_.foo = {bar: 1};
+	t.false(hasProperty(function_));
+	t.true(hasProperty(function_, 'foo'));
+	t.true(hasProperty(function_, 'foo.bar'));
 
 	t.true(hasProperty({'foo.baz': {bar: true}}, 'foo\\.baz.bar'));
 	t.true(hasProperty({'fo.ob.az': {bar: true}}, 'fo\\.ob\\.az.bar'));
@@ -382,9 +393,11 @@ test('hasProperty', t => {
 		foo: [{bar: ['bar', 'bizz']}],
 	}, 'foo[1].bar.1'));
 	t.true(hasProperty({
-		foo: [{bar: {
-			1: 'bar',
-		}}],
+		foo: [{
+			bar: {
+				1: 'bar',
+			},
+		}],
 	}, 'foo[0].bar.1'));
 });
 

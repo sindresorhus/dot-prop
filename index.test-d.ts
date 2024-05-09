@@ -1,5 +1,12 @@
 import {expectTypeOf} from 'expect-type';
-import {getProperty, setProperty, hasProperty, deleteProperty, escapePath, deepKeys} from './index.js';
+import {
+	getProperty,
+	setProperty,
+	hasProperty,
+	deleteProperty,
+	escapePath,
+	deepKeys,
+} from './index.js';
 
 expectTypeOf(getProperty({foo: {bar: 'unicorn'}}, 'foo.bar')).toBeString();
 expectTypeOf(getProperty({foo: {bar: 'a'}}, 'foo.notDefined.deep')).toBeUndefined();

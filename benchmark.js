@@ -1,5 +1,10 @@
 import Benchmark from 'benchmark';
-import {getProperty, setProperty, hasProperty, deleteProperty} from './index.js';
+import {
+	getProperty,
+	setProperty,
+	hasProperty,
+	deleteProperty,
+} from './index.js';
 
 const suite = new Benchmark.Suite();
 
@@ -34,11 +39,11 @@ suite
 		getProperty(fixture2, 'foo');
 		getProperty({}, 'hasOwnProperty');
 
-		function fn() {}
-		fn.foo = {bar: 1};
-		getProperty(fn);
-		getProperty(fn, 'foo');
-		getProperty(fn, 'foo.bar');
+		function function_() {}
+		function_.foo = {bar: 1};
+		getProperty(function_);
+		getProperty(function_, 'foo');
+		getProperty(function_, 'foo.bar');
 
 		const fixture3 = {foo: null};
 		getProperty(fixture3, 'foo.bar');
@@ -52,7 +57,7 @@ suite
 		getProperty(undefined, 'foo.bar', false);
 	})
 	.add('setProperty', () => {
-		const func = () => 'test';
+		const function_ = () => 'test';
 		let fixture1 = {};
 
 		setProperty(fixture1, 'foo', 2);
@@ -72,12 +77,12 @@ suite
 
 		setProperty(fixture1, 'foo.fake.fake2', 'fake');
 
-		setProperty(fixture1, 'foo.function', func);
+		setProperty(fixture1, 'foo.function', function_);
 
-		function fn() {}
-		setProperty(fn, 'foo.bar', 1);
+		function function__() {}
+		setProperty(function__, 'foo.bar', 1);
 
-		fixture1.fn = fn;
+		fixture1.fn = function__;
 		setProperty(fixture1, 'fn.bar.baz', 2);
 
 		const fixture2 = {foo: null};
@@ -102,24 +107,24 @@ suite
 		hasProperty({foo: {bar: {baz: null}}}, 'foo.bar.baz');
 		hasProperty({foo: {bar: 'a'}}, 'foo.fake.fake2');
 
-		function fn() {}
-		fn.foo = {bar: 1};
-		hasProperty(fn);
-		hasProperty(fn, 'foo');
-		hasProperty(fn, 'foo.bar');
+		function function_() {}
+		function_.foo = {bar: 1};
+		hasProperty(function_);
+		hasProperty(function_, 'foo');
+		hasProperty(function_, 'foo.bar');
 
 		hasProperty({'foo.baz': {bar: true}}, 'foo\\.baz.bar');
 		hasProperty({'fo.ob.az': {bar: true}}, 'fo\\.ob\\.az.bar');
 	})
 	.add('deleteProperty', () => {
-		const func = () => 'test';
-		func.foo = 'bar';
+		const function_ = () => 'test';
+		function_.foo = 'bar';
 
 		const inner = {
 			a: 'a',
 			b: 'b',
 			c: 'c',
-			func,
+			func: function_,
 		};
 
 		const fixture1 = {
