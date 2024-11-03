@@ -179,10 +179,10 @@ function assertNotStringIndex(object, key) {
 
 export default function dotProp(object) {
 	return new Proxy(object, {
-		get: (target, property, receiver) => getProperty(object, property),
-		set: (target, property, value, receiver) => setProperty(object, property, value),
-		deleteProperty: (target, property) => deleteProperty(object, property),
-		has: (target, property) => hasProperty(object, property),
+		get: (_target, property, _receiver) => getProperty(object, property),
+		set: (_target, property, value, _receiver) => setProperty(object, property, value),
+		deleteProperty: (_target, property) => deleteProperty(object, property),
+		has: (_target, property) => hasProperty(object, property),
 	});
 }
 
