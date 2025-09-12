@@ -21,7 +21,8 @@
 	},
 	"scripts": {
 		"test": "xo && ava && tsc",
-		"bench": "node benchmark.js"
+		"bench": "node benchmark.js",
+		"coverage": "c8 ava"
 	},
 	"files": [
 		"index.js",
@@ -46,6 +47,7 @@
 	"devDependencies": {
 		"ava": "^6.1.3",
 		"benchmark": "^2.1.4",
+		"c8": "^10.1.3",
 		"expect-type": "^0.19.0",
 		"typescript": "^5.4.5",
 		"xo": "^0.58.0"
