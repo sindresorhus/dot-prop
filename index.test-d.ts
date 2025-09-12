@@ -8,6 +8,17 @@ import {
 	deepKeys,
 } from './index.js';
 
+// Test the new behavior: non-object types return unknown instead of undefined
+expectTypeOf(getProperty(null, 'foo')).toBeUnknown();
+expectTypeOf(getProperty(undefined, 'foo')).toBeUnknown();
+expectTypeOf(getProperty(42, 'foo')).toBeUnknown();
+expectTypeOf(getProperty('string', 'foo')).toBeUnknown();
+expectTypeOf(getProperty(true, 'foo')).toBeUnknown();
+
+// With default values, non-object types return the default value
+expectTypeOf(getProperty(null, 'foo', 'default')).toEqualTypeOf<string>();
+expectTypeOf(getProperty(42, 'foo', 123)).toEqualTypeOf<number>();
+
 expectTypeOf(getProperty({foo: {bar: 'unicorn'}}, 'foo.bar')).toBeString();
 expectTypeOf(getProperty({foo: {bar: 'a'}}, 'foo.notDefined.deep')).toBeUndefined();
 expectTypeOf(
