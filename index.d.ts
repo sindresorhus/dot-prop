@@ -70,7 +70,7 @@ console.log(object);
 //=> {foo: {bar: 'b', baz: 'x', biz: ['a'], items: ['first']}}
 ```
 */
-export function setProperty<ObjectType extends Record<string, any>>(
+export function setProperty<ObjectType extends (Record<string, any> | unknown[])>(
 	object: ObjectType,
 	path: string,
 	value: unknown
@@ -90,7 +90,7 @@ hasProperty({foo: {bar: 'unicorn'}}, 'foo.bar');
 //=> true
 ```
 */
-export function hasProperty(object: Record<string, any> | undefined, path: string): boolean;
+export function hasProperty(object: Record<string, any> | unknown[] | undefined, path: string): boolean;
 
 /**
 Delete the property at the given path.
@@ -114,7 +114,7 @@ console.log(object);
 //=> {foo: {bar: {y: 'x'}}}
 ```
 */
-export function deleteProperty(object: Record<string, any>, path: string): boolean;
+export function deleteProperty(object: Record<string, any> | unknown[], path: string): boolean;
 
 /**
 Escape special characters in a path. Useful for sanitizing user input.

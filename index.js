@@ -180,12 +180,13 @@ function getPathSegments(path) {
 }
 
 function isStringIndex(object, key) {
-	if (typeof key !== 'number' && Array.isArray(object)) {
-		const index = Number.parseInt(key, 10);
-		return Number.isInteger(index) && object[index] === object[key];
+	if (!Array.isArray(object) || typeof key === 'number') {
+		return false;
 	}
 
-	return false;
+	// Block canonical numeric strings only: '0', '12', not '00' or '01'
+	const parsed = Number.parseInt(key, 10);
+	return Number.isInteger(parsed) && String(parsed) === key;
 }
 
 function assertNotStringIndex(object, key) {
@@ -253,8 +254,8 @@ export function setProperty(object, path, value) {
 			object[normalizedKey] = value;
 		} else if (!isObject(object[normalizedKey])) {
 			const nextKey = pathArray[index + 1];
-			// Create array if next key is a number or valid array index (when not first segment)
-			const shouldCreateArray = typeof nextKey === 'number' || (index + 1 > 0 && isValidArrayIndex(nextKey));
+			const shouldCreateArray = typeof nextKey === 'number'
+				|| (typeof nextKey === 'string' && isValidArrayIndex(nextKey));
 			object[normalizedKey] = shouldCreateArray ? [] : {};
 		}
 
@@ -281,6 +282,11 @@ export function deleteProperty(object, path) {
 		}
 
 		if (index === pathArray.length - 1) {
+			const existed = Object.hasOwn(object, normalizedKey);
+			if (!existed) {
+				return false;
+			}
+
 			delete object[normalizedKey];
 			return true;
 		}

@@ -911,3 +911,288 @@ test('dot notation array indices - boundary conditions', t => {
 	t.is(unflattened.tags[0], 'important');
 	t.is(unflattened.tags[1], 'urgent');
 });
+
+test('deleteProperty - correct boolean returns', t => {
+	// Should return false when property doesn't exist
+	t.false(deleteProperty({}, 'a'));
+	t.false(deleteProperty({a: {}}, 'a.b'));
+	t.false(deleteProperty({foo: [1, 2, 3]}, 'foo.5'));
+	t.false(deleteProperty({}, 'nonexistent.path'));
+
+	// Should return true when property exists and is deleted
+	const object = {a: {b: 'value'}, foo: 'bar'};
+	t.true(deleteProperty(object, 'a.b'));
+	t.false('b' in object.a);
+
+	t.true(deleteProperty(object, 'foo'));
+	t.false('foo' in object);
+
+	// Array indices
+	const arrayObject = {items: ['a', 'b', 'c']};
+	t.true(deleteProperty(arrayObject, 'items[1]'));
+	t.is(arrayObject.items[1], undefined);
+	t.is(arrayObject.items.length, 3); // Length preserved
+
+	// Dot notation array indices
+	const dotArrayObject = {items: ['x', 'y', 'z']};
+	t.true(deleteProperty(dotArrayObject, 'items.0'));
+	t.is(dotArrayObject.items[0], undefined);
+});
+
+test('improved string index detection', t => {
+	// Should block canonical numeric strings but allow non-canonical ones
+	const array = [undefined, 'value', undefined];
+
+	// This should be blocked (canonical)
+	t.throws(() => setProperty(array, '1', 'blocked'), {message: /Cannot use string index/});
+
+	// These should be allowed (non-canonical leading zeros)
+	const object = {arr: []};
+	setProperty(object, 'arr.01', 'leading-zero'); // '01' is non-canonical
+	setProperty(object, 'arr.00', 'double-zero'); // '00' is non-canonical
+
+	t.is(object.arr['01'], 'leading-zero');
+	t.is(object.arr['00'], 'double-zero');
+	t.not(object.arr[1], 'leading-zero'); // Should not affect actual index 1
+
+	// Direct string access on arrays should still be blocked for canonical forms
+	const array2 = ['a', 'b', 'c'];
+	t.throws(() => setProperty(array2, '0', 'blocked'), {message: /Cannot use string index/});
+	t.throws(() => setProperty(array2, '2', 'blocked'), {message: /Cannot use string index/});
+});
+
+test('string index edge cases - leading zeros treated as strings', t => {
+	// 'users.00' should be treated as string key, not array index
+	const object = {};
+	setProperty(object, 'users.00.name', 'x');
+	t.deepEqual(object, {users: {'00': {name: 'x'}}});
+	t.false(Array.isArray(object.users)); // Should be object, not array
+
+	// hasProperty should work with leading zero string keys
+	t.true(hasProperty({users: {'00': {name: 'x'}}}, 'users.00.name'));
+
+	// Multiple leading zeros
+	setProperty(object, 'users.000.id', 'y');
+	t.is(object.users['000'].id, 'y');
+
+	// Mixed canonical and non-canonical
+	const mixed = {};
+	setProperty(mixed, 'array.0', 'zero'); // Canonical -> array index
+	setProperty(mixed, 'array.00', 'double'); // Non-canonical -> string key
+	t.true(Array.isArray(mixed.array));
+	t.is(mixed.array[0], 'zero');
+	t.is(mixed.array['00'], 'double');
+});
+
+test('edge cases - empty strings and special characters', t => {
+	// Empty string segments
+	const object = {};
+	setProperty(object, '.foo', 'empty-start');
+	setProperty(object, 'foo.', 'empty-end');
+	setProperty(object, 'bar..baz', 'double-dot');
+
+	t.is(object[''].foo, 'empty-start');
+	t.is(object.foo[''], 'empty-end');
+	t.is(object.bar[''].baz, 'double-dot');
+
+	// Special numeric edge cases - these should work as they're not valid array indices
+	setProperty(object, 'items.NaN', 'nan-value');
+	setProperty(object, 'items.Infinity', 'infinity-value');
+	t.is(object.items.NaN, 'nan-value');
+	t.is(object.items.Infinity, 'infinity-value');
+
+	// Very large numbers that might cause issues
+	const largeNumber = '999999999999999999999999999999';
+	setProperty(object, `items.${largeNumber}`, 'huge');
+	t.is(object.items[largeNumber], 'huge');
+	t.false(Array.isArray(object.items)); // Too large, should create object
+
+	// Negative zero
+	setProperty(object, 'negative.-0', 'negative-zero');
+	t.is(object.negative['-0'], 'negative-zero');
+});
+
+test('edge cases - deeply nested paths', t => {
+	// Maximum reasonable depth
+	const deepPath = 'a.b.c.d.e.f.g.h.i.j.k.l.m.n.o.p.q.r.s.t.u.v.w.x.y.z';
+	const object = {};
+
+	setProperty(object, deepPath, 'deep-value');
+	t.is(getProperty(object, deepPath), 'deep-value');
+	t.true(hasProperty(object, deepPath));
+
+	// Deep path with arrays
+	setProperty(object, 'deep.0.nested.1.array.2.value', 'deep-array');
+	t.is(getProperty(object, 'deep.0.nested.1.array.2.value'), 'deep-array');
+	t.true(Array.isArray(object.deep));
+	t.true(Array.isArray(object.deep[0].nested));
+	t.true(Array.isArray(object.deep[0].nested[1].array));
+});
+
+test('edge cases - property name conflicts', t => {
+	// Properties that could conflict with method names or built-ins
+	const object = {};
+	const conflictingNames = [
+		'constructor',
+		'toString',
+		'valueOf',
+		'hasOwnProperty',
+		'isPrototypeOf',
+		'propertyIsEnumerable',
+		'length',
+		'push',
+	];
+
+	for (const name of conflictingNames) {
+		if (name === 'constructor') {
+			// Constructor is blocked
+			t.is(getProperty(object, name), undefined);
+		} else {
+			setProperty(object, name, `value-${name}`);
+			t.is(getProperty(object, name), `value-${name}`);
+			t.true(hasProperty(object, name));
+		}
+	}
+});
+
+test('edge cases - array length manipulation', t => {
+	// Setting length property on arrays
+	const arrayObject = {items: [1, 2, 3, 4, 5]};
+
+	setProperty(arrayObject, 'items.length', 2);
+	t.is(arrayObject.items.length, 2);
+	t.deepEqual(arrayObject.items, [1, 2]);
+
+	// Setting beyond current length
+	setProperty(arrayObject, 'items.10', 'sparse');
+	t.is(arrayObject.items.length, 11);
+	t.is(arrayObject.items[10], 'sparse');
+	t.is(arrayObject.items[5], undefined);
+});
+
+test('edge cases - prototype chain interactions', t => {
+	// Object with custom prototype
+	const parent = {parentProperty: 'inherited'};
+	const child = Object.create(parent);
+	child.ownProperty = 'own';
+
+	// Should access own properties
+	t.is(getProperty(child, 'ownProperty'), 'own');
+	t.true(hasProperty(child, 'ownProperty'));
+
+	// Should access inherited properties
+	t.is(getProperty(child, 'parentProperty'), 'inherited');
+	t.true(hasProperty(child, 'parentProperty'));
+
+	// Deleting should only affect own properties
+	t.false(deleteProperty(child, 'parentProperty')); // Not own property
+	t.is(getProperty(child, 'parentProperty'), 'inherited'); // Still inherited
+
+	t.true(deleteProperty(child, 'ownProperty')); // Own property
+	t.is(getProperty(child, 'ownProperty'), undefined);
+});
+
+test('edge cases - unicode and special characters', t => {
+	const object = {};
+
+	// Unicode property names
+	setProperty(object, '🦄.🌈', 'unicode');
+	t.is(getProperty(object, '🦄.🌈'), 'unicode');
+
+	// Properties with dots (escaped)
+	setProperty(object, 'key\\.with\\.dots', 'escaped');
+	t.is(getProperty(object, 'key\\.with\\.dots'), 'escaped');
+	t.is(object['key.with.dots'], 'escaped');
+
+	// Properties with brackets (escaped)
+	setProperty(object, 'key\\[with\\]brackets', 'escaped-brackets');
+	t.is(getProperty(object, 'key\\[with\\]brackets'), 'escaped-brackets');
+	t.is(object['key[with\\]brackets'], 'escaped-brackets');
+
+	// Mixed escaping and array notation
+	setProperty(object, 'items\\[special\\][0].value', 'mixed');
+	t.is(getProperty(object, 'items\\[special\\][0].value'), 'mixed');
+	t.true(Array.isArray(object['items[special\\]']));
+});
+
+test('edge cases - type coercion and falsy values', t => {
+	const object = {};
+
+	// Falsy values as property values
+	const falsyValues = [false, 0, '', null, undefined, Number.NaN];
+	for (const [index, value] of falsyValues.entries()) {
+		setProperty(object, `falsy.${index}`, value);
+
+		// GetProperty should return the actual falsy value
+		if (Number.isNaN(value)) {
+			t.true(Number.isNaN(getProperty(object, `falsy.${index}`)));
+		} else {
+			t.is(getProperty(object, `falsy.${index}`), value);
+		}
+
+		// HasProperty should return true even for falsy values
+		t.true(hasProperty(object, `falsy.${index}`));
+	}
+
+	// Default values with falsy existing values
+	t.is(getProperty(object, 'falsy.0', 'default'), false); // False, not default
+	t.is(getProperty(object, 'falsy.1', 'default'), 0); // 0, not default
+	t.is(getProperty(object, 'falsy.2', 'default'), ''); // '', not default
+	t.is(getProperty(object, 'falsy.3', 'default'), null); // Null, not default
+	t.is(getProperty(object, 'nonexistent', 'default'), 'default'); // Uses default
+});
+
+test('edge cases - circular references and complex objects', t => {
+	// Circular reference (should not cause infinite loops in our operations)
+	const circular = {name: 'root'};
+	circular.self = circular;
+
+	setProperty(circular, 'self.newProp', 'added');
+	t.is(getProperty(circular, 'self.newProp'), 'added');
+	t.is(circular.newProp, 'added'); // Because circular.self === circular
+
+	// Complex nested objects with functions
+	const complex = {
+		data: new Map([['key', 'value']]),
+		regex: /test/g,
+		date: new Date('2023-01-01'),
+		function: () => 'function-result',
+	};
+
+	setProperty(complex, 'data.newKey', 'new-value');
+	setProperty(complex, 'function.customProp', 'function-prop');
+
+	t.is(complex.data.newKey, 'new-value');
+	t.is(complex.function.customProp, 'function-prop');
+	t.is(getProperty(complex, 'function.customProp'), 'function-prop');
+});
+
+test('edge cases - array holes and sparse arrays', t => {
+	// Working with arrays that have real holes (not just undefined values)
+	const sparseArray = Array.from({length: 5}, (_, index) => (index === 1 ? 'second' : (index === 3 ? 'fourth' : undefined)));
+	sparseArray.length = 5; // Ensure length is correct
+	delete sparseArray[0]; // Create actual hole
+	delete sparseArray[2]; // Create actual hole
+	delete sparseArray[4]; // Create actual hole
+	const container = {sparse: sparseArray};
+
+	// Accessing holes should return undefined
+	t.is(getProperty(container, 'sparse.0'), undefined);
+	t.is(getProperty(container, 'sparse.2'), undefined);
+	t.is(getProperty(container, 'sparse[0]'), undefined);
+
+	// Accessing existing elements
+	t.is(getProperty(container, 'sparse.1'), 'second');
+	t.is(getProperty(container, 'sparse.3'), 'fourth');
+
+	// HasProperty should return false for actual holes
+	t.false(hasProperty(container, 'sparse.0'));
+	t.false(hasProperty(container, 'sparse.2'));
+	t.true(hasProperty(container, 'sparse.1'));
+	t.true(hasProperty(container, 'sparse.3'));
+
+	// Setting in holes
+	setProperty(container, 'sparse.0', 'filled');
+	t.is(container.sparse[0], 'filled');
+	t.true(hasProperty(container, 'sparse.0'));
+});
