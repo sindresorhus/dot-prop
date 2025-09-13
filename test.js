@@ -6,6 +6,7 @@ import {
 	deleteProperty,
 	escapePath,
 	deepKeys,
+	unflatten,
 } from './index.js';
 
 test('getProperty', t => {
@@ -691,4 +692,87 @@ test('invalid path edge cases for indexEnd state', t => {
 	t.throws(() => {
 		getProperty({}, '[0]a');
 	}, {message: 'Invalid character after an index'});
+});
+
+test('unflatten - basic dotted keys (issue #116)', t => {
+	const flat = {
+		'user.name': 'Gummy Bear',
+		'user.email': 'gummybear@candymountain.com',
+		'user.professional.title': 'King',
+		'user.professional.employer': 'Candy Mountain',
+	};
+
+	const result = unflatten(flat);
+
+	t.deepEqual(result, {
+		user: {
+			name: 'Gummy Bear',
+			email: 'gummybear@candymountain.com',
+			professional: {
+				title: 'King',
+				employer: 'Candy Mountain',
+			},
+		},
+	});
+});
+
+test('unflatten - bracket indexes and escapes', t => {
+	const flat = {
+		'users[0].name': 'Ada',
+		'users[1].name': 'Linus',
+		'a\\.b.c': 1,
+	};
+
+	const result = unflatten(flat);
+
+	t.is(result.users[0].name, 'Ada');
+	t.is(result.users[1].name, 'Linus');
+	t.is(result['a.b'].c, 1);
+
+	// Ensure getProperty agrees with produced structure
+	t.is(getProperty(result, 'users[0].name'), 'Ada');
+	t.is(getProperty(result, 'a\\.b.c'), 1);
+});
+
+test('unflatten - disallowed keys are ignored safely', t => {
+	const flat = {
+		'__proto__.polluted': 'nope',
+		'constructor.prototype.bad': true,
+		'valid.path': 1,
+	};
+
+	const result = unflatten(flat);
+
+	t.is(result.valid.path, 1);
+	// Ensure prototype is not polluted via inherited property
+	const empty = {};
+	t.false('polluted' in empty);
+});
+
+test('unflatten - non-object input returns empty object', t => {
+	t.deepEqual(unflatten(undefined), {});
+	t.deepEqual(unflatten(null), {});
+	t.deepEqual(unflatten('unicorn'), {});
+	t.deepEqual(unflatten(1), {});
+});
+
+test('unflatten - last write wins on conflicts', t => {
+	const flat = {
+		a: 1,
+		'a.b': 2,
+		'a.c': 3,
+	};
+
+	const result = unflatten(flat);
+
+	// Primitive at 'a' is replaced by object writes
+	t.deepEqual(result, {a: {b: 2, c: 3}});
+});
+
+test('unflatten - creates sparse arrays where appropriate', t => {
+	const result = unflatten({'arr[2]': 'value'});
+	t.is(result.arr.length, 3);
+	t.is(result.arr[0], undefined);
+	t.is(result.arr[1], undefined);
+	t.is(result.arr[2], 'value');
 });

@@ -162,3 +162,34 @@ for (const property of deepKeys(user)) {
 ```
 */
 export function deepKeys(object: unknown): string[];
+
+/**
+Convert an object with dot paths into a nested object.
+
+Uses the same path rules and escaping as the rest of the API.
+
+@param object - A plain object mapping paths to values.
+@returns A new nested object.
+
+@example
+```
+import {unflatten} from 'dot-prop';
+
+const flat = {
+	'unicorn.name': 'Rainbow Dash',
+	'unicorn.color': '🦄',
+	'unicorn.treasures[0]': 'sparkles',
+	'unicorn.treasures[1]': 'glitter',
+};
+
+unflatten(flat);
+//=> {
+//=> 	unicorn: {
+//=> 		name: 'Rainbow Dash',
+//=> 		color: '🦄',
+//=> 		treasures: ['sparkles', 'glitter']
+//=> 	}
+//=> }
+```
+*/
+export function unflatten(object: Record<string, unknown>): Record<string, unknown>;

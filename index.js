@@ -335,3 +335,16 @@ function * deepKeysIterator(object, currentPath = []) {
 export function deepKeys(object) {
 	return [...deepKeysIterator(object)];
 }
+
+export function unflatten(object) {
+	const result = {};
+	if (!isObject(object)) {
+		return result;
+	}
+
+	for (const [path, value] of Object.entries(object)) {
+		setProperty(result, path, value);
+	}
+
+	return result;
+}

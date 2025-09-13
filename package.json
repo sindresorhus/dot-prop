@@ -39,7 +39,10 @@
 		"delete",
 		"access",
 		"notation",
-		"dotty"
+		"dotty",
+		"dottie",
+		"unflatten",
+		"expand"
 	],
 	"dependencies": {
 		"type-fest": "^4.18.2"
