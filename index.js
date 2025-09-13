@@ -13,6 +13,23 @@ const disallowedKeys = new Set([
 
 const digits = new Set('0123456789');
 
+function isValidArrayIndex(value) {
+	return typeof value === 'string'
+		&& /^\d+$/.test(value)
+		&& Number.parseInt(value, 10) >= 0
+		&& (value === '0' || !value.startsWith('0')); // Reject leading zeros except for '0' itself
+}
+
+function normalizeKey(key, object, pathIndex) {
+	// Convert dot notation array indices to numbers (e.g., 'users.0' -> 'users', 0)
+	// Only allow this when not the first path segment to preserve string index blocking
+	if (pathIndex > 0 && typeof key === 'string' && Array.isArray(object) && isValidArrayIndex(key)) {
+		return Number.parseInt(key, 10);
+	}
+
+	return key;
+}
+
 function getPathSegments(path) {
 	const parts = [];
 	let currentSegment = '';
@@ -189,11 +206,13 @@ export function getProperty(object, path, value) {
 
 	for (let index = 0; index < pathArray.length; index++) {
 		const key = pathArray[index];
+		const normalizedKey = normalizeKey(key, object, index);
 
-		if (isStringIndex(object, key)) {
+		// Only check for string index if we're not using a normalized (converted) key
+		if (normalizedKey === key && isStringIndex(object, key)) {
 			object = index === pathArray.length - 1 ? undefined : null;
 		} else {
-			object = object[key];
+			object = object[normalizedKey];
 		}
 
 		if (object === undefined || object === null) {
@@ -223,16 +242,23 @@ export function setProperty(object, path, value) {
 
 	for (let index = 0; index < pathArray.length; index++) {
 		const key = pathArray[index];
+		const normalizedKey = normalizeKey(key, object, index);
 
-		assertNotStringIndex(object, key);
-
-		if (index === pathArray.length - 1) {
-			object[key] = value;
-		} else if (!isObject(object[key])) {
-			object[key] = typeof pathArray[index + 1] === 'number' ? [] : {};
+		// Only check for string index if we're not using a normalized (converted) key
+		if (normalizedKey === key) {
+			assertNotStringIndex(object, key);
 		}
 
-		object = object[key];
+		if (index === pathArray.length - 1) {
+			object[normalizedKey] = value;
+		} else if (!isObject(object[normalizedKey])) {
+			const nextKey = pathArray[index + 1];
+			// Create array if next key is a number or valid array index (when not first segment)
+			const shouldCreateArray = typeof nextKey === 'number' || (index + 1 > 0 && isValidArrayIndex(nextKey));
+			object[normalizedKey] = shouldCreateArray ? [] : {};
+		}
+
+		object = object[normalizedKey];
 	}
 
 	return root;
@@ -247,15 +273,19 @@ export function deleteProperty(object, path) {
 
 	for (let index = 0; index < pathArray.length; index++) {
 		const key = pathArray[index];
+		const normalizedKey = normalizeKey(key, object, index);
 
-		assertNotStringIndex(object, key);
+		// Only check for string index if we're not using a normalized (converted) key
+		if (normalizedKey === key) {
+			assertNotStringIndex(object, key);
+		}
 
 		if (index === pathArray.length - 1) {
-			delete object[key];
+			delete object[normalizedKey];
 			return true;
 		}
 
-		object = object[key];
+		object = object[normalizedKey];
 
 		if (!isObject(object)) {
 			return false;
@@ -273,12 +303,17 @@ export function hasProperty(object, path) {
 		return false;
 	}
 
-	for (const key of pathArray) {
-		if (!isObject(object) || !(key in object) || isStringIndex(object, key)) {
+	for (const [index, key] of pathArray.entries()) {
+		const normalizedKey = normalizeKey(key, object, index);
+
+		// Only check for string index if we're not using a normalized (converted) key
+		const shouldCheckStringIndex = normalizedKey === key && isStringIndex(object, key);
+
+		if (!isObject(object) || !(normalizedKey in object) || shouldCheckStringIndex) {
 			return false;
 		}
 
-		object = object[key];
+		object = object[normalizedKey];
 	}
 
 	return true;

@@ -4,7 +4,7 @@ import {type Get} from 'type-fest';
 Get the value of the property at the given path.
 
 @param object - Object or array to get the `path` value.
-@param path - Path of the property in the object, using `.` to separate each nested key. Use `\\.` if you have a `.` in the key.
+@param path - Path of the property in the object, using `.` to separate each nested key. Use `\\.` if you have a `.` in the key. Array indices can be accessed using bracket notation (`'users[0].name'`) or dot notation (`'users.0.name'`).
 @param defaultValue - Default value.
 
 @example
@@ -25,6 +25,9 @@ getProperty({foo: {'dot.dot': 'unicorn'}}, 'foo.dot\\.dot');
 
 getProperty({foo: [{bar: 'unicorn'}]}, 'foo[0].bar');
 //=> 'unicorn'
+
+getProperty({foo: [{bar: 'unicorn'}]}, 'foo.0.bar');
+//=> 'unicorn'
 ```
 */
 export function getProperty<ObjectType, PathType extends string, DefaultValue = undefined>(
@@ -37,7 +40,7 @@ export function getProperty<ObjectType, PathType extends string, DefaultValue = 
 Set the property at the given path to the given value.
 
 @param object - Object or array to set the `path` value.
-@param path - Path of the property in the object, using `.` to separate each nested key. Use `\\.` if you have a `.` in the key.
+@param path - Path of the property in the object, using `.` to separate each nested key. Use `\\.` if you have a `.` in the key. Array indices can be accessed using bracket notation (`'users[0].name'`) or dot notation (`'users.0.name'`).
 @param value - Value to set at `path`.
 @returns The object.
 
@@ -61,6 +64,10 @@ console.log(object);
 setProperty(object, 'foo.biz[0]', 'a');
 console.log(object);
 //=> {foo: {bar: 'b', baz: 'x', biz: ['a']}}
+
+setProperty(object, 'foo.items.0', 'first');
+console.log(object);
+//=> {foo: {bar: 'b', baz: 'x', biz: ['a'], items: ['first']}}
 ```
 */
 export function setProperty<ObjectType extends Record<string, any>>(
@@ -73,7 +80,7 @@ export function setProperty<ObjectType extends Record<string, any>>(
 Check whether the property at the given path exists.
 
 @param object - Object or array to test the `path` value.
-@param path - Path of the property in the object, using `.` to separate each nested key. Use `\\.` if you have a `.` in the key.
+@param path - Path of the property in the object, using `.` to separate each nested key. Use `\\.` if you have a `.` in the key. Array indices can be accessed using bracket notation (`'users[0].name'`) or dot notation (`'users.0.name'`).
 
 @example
 ```
@@ -89,7 +96,7 @@ export function hasProperty(object: Record<string, any> | undefined, path: strin
 Delete the property at the given path.
 
 @param object - Object or array to delete the `path` value.
-@param path - Path of the property in the object, using `.` to separate each nested key. Use `\\.` if you have a `.` in the key.
+@param path - Path of the property in the object, using `.` to separate each nested key. Use `\\.` if you have a `.` in the key. Array indices can be accessed using bracket notation (`'users[0].name'`) or dot notation (`'users.0.name'`).
 @returns A boolean of whether the property existed before being deleted.
 
 @example

@@ -29,6 +29,9 @@ getProperty({foo: {'dot.dot': 'unicorn'}}, 'foo.dot\\.dot');
 getProperty({foo: [{bar: 'unicorn'}]}, 'foo[0].bar');
 //=> 'unicorn'
 
+getProperty({foo: [{bar: 'unicorn'}]}, 'foo.0.bar');
+//=> 'unicorn'
+
 // Setter
 const object = {foo: {bar: 'a'}};
 setProperty(object, 'foo.bar', 'b');
@@ -46,6 +49,10 @@ console.log(object);
 setProperty(object, 'foo.biz[0]', 'a');
 console.log(object);
 //=> {foo: {bar: 'b', baz: 'x', biz: ['a']}}
+
+setProperty(object, 'foo.items.0', 'first');
+console.log(object);
+//=> {foo: {bar: 'b', baz: 'x', biz: ['a'], items: ['first']}}
 
 // Has
 hasProperty({foo: {bar: 'unicorn'}}, 'foo.bar');
@@ -152,6 +159,8 @@ Type: `string`
 Path of the property in the object, using `.` to separate each nested key.
 
 Use `\\.` if you have a `.` in the key.
+
+Array indices can be accessed using bracket notation (like `'users[0].name'`) or dot notation (like `'users.0.name'`). Both syntaxes are equivalent and will create arrays when setting values.
 
 The following path components are invalid and results in `undefined` being returned: `__proto__`, `prototype`, `constructor`.
 

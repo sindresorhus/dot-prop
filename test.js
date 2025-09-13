@@ -143,7 +143,7 @@ test('getProperty - with array indexes', t => {
 
 	t.false(getProperty([true], '0', false));
 
-	t.false(getProperty({foo: [true]}, 'foo.0', false));
+	t.true(getProperty({foo: [true]}, 'foo.0'));
 	t.true(getProperty({
 		foo: {
 			0: true,
@@ -381,7 +381,7 @@ test('hasProperty', t => {
 	t.true(hasProperty({'fo.ob.az': {bar: true}}, 'fo\\.ob\\.az.bar'));
 	t.false(hasProperty(undefined, 'fo\\.ob\\.az.bar'));
 
-	t.false(hasProperty({
+	t.true(hasProperty({
 		foo: [{bar: ['bar', 'bizz']}],
 	}, 'foo[0].bar.1'));
 	t.false(hasProperty({
@@ -775,4 +775,139 @@ test('unflatten - creates sparse arrays where appropriate', t => {
 	t.is(result.arr[0], undefined);
 	t.is(result.arr[1], undefined);
 	t.is(result.arr[2], 'value');
+});
+
+test('dot notation for array indices support', t => {
+	// GetProperty with dot notation for array indices
+	const object = {users: [{name: 'Alice', roles: ['admin']}, {name: 'Bob'}]};
+	t.is(getProperty(object, 'users.0.name'), 'Alice');
+	t.is(getProperty(object, 'users.1.name'), 'Bob');
+	t.is(getProperty(object, 'users.0.roles.0'), 'admin');
+
+	// SetProperty with dot notation for array indices
+	const data = {};
+	setProperty(data, 'items.0.title', 'First Item');
+	setProperty(data, 'items.1.title', 'Second Item');
+	setProperty(data, 'items.0.tags.0', 'important');
+
+	t.true(Array.isArray(data.items));
+	t.is(data.items[0].title, 'First Item');
+	t.is(data.items[1].title, 'Second Item');
+	t.true(Array.isArray(data.items[0].tags));
+	t.is(data.items[0].tags[0], 'important');
+
+	// HasProperty with dot notation for array indices
+	t.true(hasProperty(data, 'items.0.title'));
+	t.true(hasProperty(data, 'items.0.tags.0'));
+	t.false(hasProperty(data, 'items.2.title'));
+
+	// DeleteProperty with dot notation for array indices
+	t.true(deleteProperty(data, 'items.0.tags.0'));
+	t.is(data.items[0].tags[0], undefined);
+
+	// Mixed bracket and dot notation should work
+	t.is(getProperty(object, 'users[0].name'), 'Alice');
+	t.is(getProperty(object, 'users.0.roles[0]'), 'admin');
+});
+
+test('dot notation array indices - edge cases and mixed syntax', t => {
+	// Test with sparse arrays
+	const sparseObject = {};
+	setProperty(sparseObject, 'items.5.name', 'item5');
+	t.is(sparseObject.items[5].name, 'item5');
+	t.is(sparseObject.items[0], undefined);
+	t.true(hasProperty(sparseObject, 'items.5.name'));
+	t.false(hasProperty(sparseObject, 'items.0.name'));
+
+	// Deep nesting with mixed syntax
+	const deepObject = {
+		level1: [{
+			level2: {
+				arr: [
+					{level4: ['deep', 'array']},
+				],
+			},
+		}],
+	};
+
+	t.is(getProperty(deepObject, 'level1.0.level2.arr[0].level4.1'), 'array');
+	t.is(getProperty(deepObject, 'level1[0].level2.arr.0.level4[1]'), 'array');
+
+	// Setting complex nested structures
+	setProperty(deepObject, 'level1.0.level2.newArr.0.value', 'test');
+	t.is(deepObject.level1[0].level2.newArr[0].value, 'test');
+
+	// Zero-based indices
+	const zeroObject = {};
+	setProperty(zeroObject, 'arr.0', 'first');
+	setProperty(zeroObject, 'arr.00', 'zero-prefixed'); // Should be treated as string
+	t.is(zeroObject.arr[0], 'first');
+	t.is(zeroObject.arr['00'], 'zero-prefixed');
+	t.true(hasProperty(zeroObject, 'arr.0'));
+
+	// Large indices
+	const largeIndexObject = {};
+	setProperty(largeIndexObject, 'arr.100', 'large');
+	t.is(largeIndexObject.arr[100], 'large');
+	t.is(largeIndexObject.arr.length, 101);
+
+	// Mixed object and array operations
+	const mixedObject = {complex: {data: [{items: ['a', 'b']}, {items: ['c', 'd']}]}};
+	t.is(getProperty(mixedObject, 'complex.data.0.items.1'), 'b');
+	t.is(getProperty(mixedObject, 'complex.data.1.items.0'), 'c');
+
+	setProperty(mixedObject, 'complex.data.0.items.2', 'e');
+	t.is(mixedObject.complex.data[0].items[2], 'e');
+
+	t.true(deleteProperty(mixedObject, 'complex.data.0.items.1'));
+	t.is(mixedObject.complex.data[0].items[1], undefined);
+});
+
+test('dot notation array indices - boundary conditions', t => {
+	// Negative indices should be treated as strings (not valid array indices)
+	const object = {};
+	setProperty(object, 'arr.-1', 'negative');
+	t.is(object.arr['-1'], 'negative');
+	t.false(Array.isArray(object.arr)); // Should create object, not array
+
+	// Non-numeric strings with dots should work normally
+	setProperty(object, 'data.abc.def', 'string-keys');
+	t.is(object.data.abc.def, 'string-keys');
+
+	// Leading zeros are treated as strings
+	const leadingZeroObject = {};
+	setProperty(leadingZeroObject, 'arr.01', 'leading-zero');
+	setProperty(leadingZeroObject, 'arr.1', 'one');
+	t.is(leadingZeroObject.arr['01'], 'leading-zero');
+	t.is(leadingZeroObject.arr[1], 'one');
+	t.not(leadingZeroObject.arr['01'], leadingZeroObject.arr[1]);
+
+	// Empty arrays with dot notation
+	const emptyArrayObject = {arr: []};
+	t.false(hasProperty(emptyArrayObject, 'arr.0'));
+	setProperty(emptyArrayObject, 'arr.0', 'first');
+	t.true(hasProperty(emptyArrayObject, 'arr.0'));
+	t.is(emptyArrayObject.arr[0], 'first');
+
+	// Very long numeric strings (should still work as indices)
+	const longIndexObject = {};
+	setProperty(longIndexObject, 'arr.999999999999999', 'huge-index');
+	t.is(longIndexObject.arr[999_999_999_999_999], 'huge-index');
+
+	// Unflatten with dot array notation
+	const flatWithDotIndices = {
+		'users.0.name': 'Alice',
+		'users.0.age': 30,
+		'users.1.name': 'Bob',
+		'tags.0': 'important',
+		'tags.1': 'urgent',
+	};
+
+	const unflattened = unflatten(flatWithDotIndices);
+	t.true(Array.isArray(unflattened.users));
+	t.true(Array.isArray(unflattened.tags));
+	t.is(unflattened.users[0].name, 'Alice');
+	t.is(unflattened.users[1].name, 'Bob');
+	t.is(unflattened.tags[0], 'important');
+	t.is(unflattened.tags[1], 'urgent');
 });
