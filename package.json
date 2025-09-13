@@ -17,7 +17,7 @@
 	},
 	"sideEffects": false,
 	"engines": {
-		"node": ">=18"
+		"node": ">=20"
 	},
 	"scripts": {
 		"test": "xo && ava && tsc",
@@ -45,14 +45,14 @@
 		"expand"
 	],
 	"dependencies": {
-		"type-fest": "^4.18.2"
+		"type-fest": "^5.0.0"
 	},
 	"devDependencies": {
-		"ava": "^6.1.3",
+		"ava": "^6.4.1",
 		"benchmark": "^2.1.4",
 		"c8": "^10.1.3",
-		"expect-type": "^0.19.0",
-		"typescript": "^5.4.5",
-		"xo": "^0.58.0"
+		"expect-type": "^1.2.2",
+		"typescript": "^5.9.2",
+		"xo": "^1.2.2"
 	}
 }

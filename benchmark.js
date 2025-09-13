@@ -24,12 +24,12 @@ suite
 		getProperty({foo: {bar: 'a'}}, 'foo.fake');
 		getProperty({foo: {bar: 'a'}}, 'foo.fake.fake2');
 		getProperty({'\\': true}, '\\');
-		getProperty({'\\foo': true}, '\\foo');
+		getProperty({'\\foo': true}, String.raw`\foo`);
 		getProperty({'bar\\': true}, 'bar\\');
-		getProperty({'foo\\bar': true}, 'foo\\bar');
-		getProperty({'\\.foo': true}, '\\\\.foo');
-		getProperty({'bar\\.': true}, 'bar\\\\.');
-		getProperty({'foo\\.bar': true}, 'foo\\\\.bar');
+		getProperty({'foo\\bar': true}, String.raw`foo\bar`);
+		getProperty({'\\.foo': true}, String.raw`\\.foo`);
+		getProperty({'bar\\.': true}, String.raw`bar\\.`);
+		getProperty({'foo\\.bar': true}, String.raw`foo\\.bar`);
 
 		const fixture2 = {};
 		Object.defineProperty(fixture2, 'foo', {
@@ -48,8 +48,8 @@ suite
 		const fixture3 = {foo: null};
 		getProperty(fixture3, 'foo.bar');
 
-		getProperty({'foo.baz': {bar: true}}, 'foo\\.baz.bar');
-		getProperty({'fo.ob.az': {bar: true}}, 'fo\\.ob\\.az.bar');
+		getProperty({'foo.baz': {bar: true}}, String.raw`foo\.baz.bar`);
+		getProperty({'fo.ob.az': {bar: true}}, String.raw`fo\.ob\.az.bar`);
 
 		getProperty(null, 'foo.bar', false);
 		getProperty('foo', 'foo.bar', false);
@@ -91,9 +91,9 @@ suite
 		const fixture3 = {};
 		setProperty(fixture3, '', 3);
 
-		setProperty(fixture1, 'foo\\.bar.baz', true);
+		setProperty(fixture1, String.raw`foo\.bar.baz`, true);
 
-		setProperty(fixture1, 'fo\\.ob\\.ar.baz', true);
+		setProperty(fixture1, String.raw`fo\.ob\.ar.baz`, true);
 	})
 	.add('hasProperty', () => {
 		const fixture1 = {foo: {bar: 1}};
@@ -113,8 +113,8 @@ suite
 		hasProperty(function_, 'foo');
 		hasProperty(function_, 'foo.bar');
 
-		hasProperty({'foo.baz': {bar: true}}, 'foo\\.baz.bar');
-		hasProperty({'fo.ob.az': {bar: true}}, 'fo\\.ob\\.az.bar');
+		hasProperty({'foo.baz': {bar: true}}, String.raw`foo\.baz.bar`);
+		hasProperty({'fo.ob.az': {bar: true}}, String.raw`fo\.ob\.az.bar`);
 	})
 	.add('deleteProperty', () => {
 		const function_ = () => 'test';
@@ -146,12 +146,12 @@ suite
 
 		deleteProperty(fixture1, 'foo.bar.baz.func');
 
-		setProperty(fixture1, 'foo\\.bar.baz', true);
-		deleteProperty(fixture1, 'foo\\.bar.baz');
+		setProperty(fixture1, String.raw`foo\.bar.baz`, true);
+		deleteProperty(fixture1, String.raw`foo\.bar.baz`);
 
 		const fixture2 = {};
-		setProperty(fixture2, 'foo.bar\\.baz', true);
-		deleteProperty(fixture2, 'foo.bar\\.baz');
+		setProperty(fixture2, String.raw`foo.bar\.baz`, true);
+		deleteProperty(fixture2, String.raw`foo.bar\.baz`);
 
 		fixture2.dotted = {
 			sub: {
@@ -159,7 +159,7 @@ suite
 				other: 'prop',
 			},
 		};
-		deleteProperty(fixture2, 'dotted.sub.dotted\\.prop');
+		deleteProperty(fixture2, String.raw`dotted.sub.dotted\.prop`);
 	})
 	.on('cycle', event => {
 		console.log(String(event.target));

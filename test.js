@@ -26,18 +26,18 @@ test('getProperty', t => {
 	t.is(getProperty({foo: {bar: 'a'}}, 'foo.fake.fake2', 'some value'), 'some value');
 	t.is(getProperty({foo: {}}, 'foo.fake', 'some value'), 'some value');
 	t.true(getProperty({'\\': true}, '\\'));
-	t.true(getProperty({'\\foo': true}, '\\foo'));
-	t.true(getProperty({'\\foo': true}, '\\\\foo'));
+	t.true(getProperty({'\\foo': true}, String.raw`\foo`));
+	t.true(getProperty({'\\foo': true}, String.raw`\\foo`));
 	t.true(getProperty({'foo\\': true}, 'foo\\\\'));
 	t.true(getProperty({'bar\\': true}, 'bar\\'));
-	t.true(getProperty({'foo\\bar': true}, 'foo\\bar'));
-	t.true(getProperty({'\\': {foo: true}}, '\\\\.foo'));
-	t.true(getProperty({'bar\\.': true}, 'bar\\\\\\.'));
+	t.true(getProperty({'foo\\bar': true}, String.raw`foo\bar`));
+	t.true(getProperty({'\\': {foo: true}}, String.raw`\\.foo`));
+	t.true(getProperty({'bar\\.': true}, String.raw`bar\\\.`));
 	t.true(getProperty({
 		'foo\\': {
 			bar: true,
 		},
-	}, 'foo\\\\.bar'));
+	}, String.raw`foo\\.bar`));
 	t.is(getProperty({foo: 1}, 'foo.bar'), undefined);
 
 	const fixture2 = {};
@@ -58,8 +58,8 @@ test('getProperty', t => {
 	t.is(getProperty(f3, 'foo.bar'), undefined);
 	t.is(getProperty(f3, 'foo.bar', 'some value'), 'some value');
 
-	t.true(getProperty({'foo.baz': {bar: true}}, 'foo\\.baz.bar'));
-	t.true(getProperty({'fo.ob.az': {bar: true}}, 'fo\\.ob\\.az.bar'));
+	t.true(getProperty({'foo.baz': {bar: true}}, String.raw`foo\.baz.bar`));
+	t.true(getProperty({'fo.ob.az': {bar: true}}, String.raw`fo\.ob\.az.bar`));
 
 	t.false(getProperty(null, 'foo.bar', false));
 	t.false(getProperty('foo', 'foo.bar', false));
@@ -92,7 +92,7 @@ test('getProperty - with array indexes', t => {
 		bar: {
 			'[0]': true,
 		},
-	}, 'bar.\\[0]'));
+	}, String.raw`bar.\[0]`));
 	t.true(getProperty({
 		bar: {
 			'': [true],
@@ -114,12 +114,12 @@ test('getProperty - with array indexes', t => {
 		'foo[5]': {
 			bar: true,
 		},
-	}, 'foo\\[5].bar'));
+	}, String.raw`foo\[5].bar`));
 	t.throws(() => getProperty({
 		'foo[5\\]': {
 			bar: true,
 		},
-	}, 'foo[5\\].bar'), {
+	}, String.raw`foo[5\].bar`), {
 		message: 'Invalid character in an index',
 	});
 	t.throws(() => getProperty({
@@ -152,14 +152,14 @@ test('getProperty - with array indexes', t => {
 
 	t.true(getProperty([{
 		'[1]': true,
-	}, false, false], '[0].\\[1]'));
+	}, false, false], String.raw`[0].\[1]`));
 
-	t.true(getProperty({foo: {'[0]': true}}, 'foo.\\[0]'));
-	t.throws(() => getProperty({foo: {'[0]': true}}, 'foo.[0\\]'), {
+	t.true(getProperty({foo: {'[0]': true}}, String.raw`foo.\[0]`));
+	t.throws(() => getProperty({foo: {'[0]': true}}, String.raw`foo.[0\]`), {
 		message: 'Invalid character in an index',
 	});
-	t.true(getProperty({foo: {'\\': [true]}}, 'foo.\\\\[0]'));
-	t.throws(() => getProperty({foo: {'[0]': true}}, 'foo.[0\\]'), {
+	t.true(getProperty({foo: {'\\': [true]}}, String.raw`foo.\\[0]`));
+	t.throws(() => getProperty({foo: {'[0]': true}}, String.raw`foo.[0\]`), {
 		message: 'Invalid character in an index',
 	});
 
@@ -220,10 +220,10 @@ test('setProperty', t => {
 	setProperty(fixture3, '', 3);
 	t.is(fixture3[''], 3);
 
-	setProperty(fixture1, 'foo\\.bar.baz', true);
+	setProperty(fixture1, String.raw`foo\.bar.baz`, true);
 	t.is(fixture1['foo.bar'].baz, true);
 
-	setProperty(fixture1, 'fo\\.ob\\.ar.baz', true);
+	setProperty(fixture1, String.raw`fo\.ob\.ar.baz`, true);
 	t.true(fixture1['fo.ob.ar'].baz);
 
 	const fixture4 = 'noobject';
@@ -300,15 +300,15 @@ test('deleteProperty', t => {
 	t.true(deleteProperty(fixture1, 'foo.bar.baz.func'));
 	t.is(fixture1.foo.bar.baz.func, undefined);
 
-	setProperty(fixture1, 'foo\\.bar.baz', true);
+	setProperty(fixture1, String.raw`foo\.bar.baz`, true);
 	t.true(fixture1['foo.bar'].baz);
-	t.true(deleteProperty(fixture1, 'foo\\.bar.baz'));
+	t.true(deleteProperty(fixture1, String.raw`foo\.bar.baz`));
 	t.is(fixture1['foo.bar'].baz, undefined);
 
 	const fixture2 = {};
-	setProperty(fixture2, 'foo.bar\\.baz', true);
+	setProperty(fixture2, String.raw`foo.bar\.baz`, true);
 	t.true(fixture2.foo['bar.baz']);
-	t.true(deleteProperty(fixture2, 'foo.bar\\.baz'));
+	t.true(deleteProperty(fixture2, String.raw`foo.bar\.baz`));
 	t.is(fixture2.foo['bar.baz'], undefined);
 
 	fixture2.dotted = {
@@ -317,7 +317,7 @@ test('deleteProperty', t => {
 			other: 'prop',
 		},
 	};
-	t.true(deleteProperty(fixture2, 'dotted.sub.dotted\\.prop'));
+	t.true(deleteProperty(fixture2, String.raw`dotted.sub.dotted\.prop`));
 	t.is(fixture2.dotted.sub['dotted.prop'], undefined);
 	t.is(fixture2.dotted.sub.other, 'prop');
 
@@ -377,9 +377,9 @@ test('hasProperty', t => {
 	t.true(hasProperty(function_, 'foo'));
 	t.true(hasProperty(function_, 'foo.bar'));
 
-	t.true(hasProperty({'foo.baz': {bar: true}}, 'foo\\.baz.bar'));
-	t.true(hasProperty({'fo.ob.az': {bar: true}}, 'fo\\.ob\\.az.bar'));
-	t.false(hasProperty(undefined, 'fo\\.ob\\.az.bar'));
+	t.true(hasProperty({'foo.baz': {bar: true}}, String.raw`foo\.baz.bar`));
+	t.true(hasProperty({'fo.ob.az': {bar: true}}, String.raw`fo\.ob\.az.bar`));
+	t.false(hasProperty(undefined, String.raw`fo\.ob\.az.bar`));
 
 	t.true(hasProperty({
 		foo: [{bar: ['bar', 'bizz']}],
@@ -400,16 +400,16 @@ test('hasProperty', t => {
 });
 
 test('escapePath', t => {
-	t.is(escapePath('foo.bar[0]'), 'foo\\.bar\\[0]');
-	t.is(escapePath('foo\\.bar[0]'), 'foo\\\\\\.bar\\[0]');
-	t.is(escapePath('foo\\\.bar[0]'), 'foo\\\\\\.bar\\[0]'); // eslint-disable-line no-useless-escape
-	t.is(escapePath('foo\\\\.bar[0]'), 'foo\\\\\\\\\\.bar\\[0]');
-	t.is(escapePath('foo\\\\.bar\\\\[0]'), 'foo\\\\\\\\\\.bar\\\\\\\\\\[0]');
-	t.is(escapePath('foo[0].bar'), 'foo\\[0]\\.bar');
-	t.is(escapePath('foo.bar[0].baz'), 'foo\\.bar\\[0]\\.baz');
-	t.is(escapePath('[0].foo'), '\\[0]\\.foo');
+	t.is(escapePath('foo.bar[0]'), String.raw`foo\.bar\[0]`);
+	t.is(escapePath(String.raw`foo\.bar[0]`), String.raw`foo\\\.bar\[0]`);
+	t.is(escapePath('foo\\\.bar[0]'), String.raw`foo\\\.bar\[0]`); // eslint-disable-line no-useless-escape
+	t.is(escapePath(String.raw`foo\\.bar[0]`), String.raw`foo\\\\\.bar\[0]`);
+	t.is(escapePath(String.raw`foo\\.bar\\[0]`), String.raw`foo\\\\\.bar\\\\\[0]`);
+	t.is(escapePath('foo[0].bar'), String.raw`foo\[0]\.bar`);
+	t.is(escapePath('foo.bar[0].baz'), String.raw`foo\.bar\[0]\.baz`);
+	t.is(escapePath('[0].foo'), String.raw`\[0]\.foo`);
 	// TODO: The following three tests assume that backslashes with no effect are escaped. Update when this changes.
-	t.is(escapePath('\\foo'), '\\\\foo');
+	t.is(escapePath(String.raw`\foo`), String.raw`\\foo`);
 	t.is(escapePath('foo\\'), 'foo\\\\');
 	t.is(escapePath('foo\\\\'), 'foo\\\\\\\\');
 	t.is(escapePath(''), '');
@@ -453,17 +453,17 @@ test('deepKeys', t => {
 	t.deepEqual(keys, [
 		'eo',
 		'ea',
-		'a\\.b.c.d[0]',
-		'a\\.b.c.d[1]',
-		'a\\.b.c.d[2].g',
-		'a\\.b.c.e',
-		'a\\.b.c.f',
-		'a\\.b.c.h',
-		'a\\.b.c.i',
-		'a\\.b.c.nu',
-		'a\\.b.c.na',
-		'a\\.b.c.un',
-		'a\\.b..a',
+		String.raw`a\.b.c.d[0]`,
+		String.raw`a\.b.c.d[1]`,
+		String.raw`a\.b.c.d[2].g`,
+		String.raw`a\.b.c.e`,
+		String.raw`a\.b.c.f`,
+		String.raw`a\.b.c.h`,
+		String.raw`a\.b.c.i`,
+		String.raw`a\.b.c.nu`,
+		String.raw`a\.b.c.na`,
+		String.raw`a\.b.c.un`,
+		String.raw`a\.b..a`,
 		'.a',
 	]);
 
@@ -477,7 +477,7 @@ test('deepKeys', t => {
 
 test('deepKeys - does not throw on sparse array', t => {
 	const object = {
-		sparse: [1,,3], // eslint-disable-line no-sparse-arrays, comma-spacing
+		sparse: [1,,3], // eslint-disable-line no-sparse-arrays
 	};
 
 	const keys = deepKeys(object);
@@ -552,12 +552,12 @@ test('escaped paths with special characters', t => {
 	const fixture = {};
 
 	// Test escaping of dots, brackets, and backslashes
-	setProperty(fixture, 'foo\\.bar\\[0]', 'value');
+	setProperty(fixture, String.raw`foo\.bar\[0]`, 'value');
 	t.is(fixture['foo.bar[0]'], 'value');
-	t.is(getProperty(fixture, 'foo\\.bar\\[0]'), 'value');
+	t.is(getProperty(fixture, String.raw`foo\.bar\[0]`), 'value');
 
 	// Test multiple escaped characters
-	setProperty(fixture, 'a\\.b\\.c', 'test');
+	setProperty(fixture, String.raw`a\.b\.c`, 'test');
 	t.is(fixture['a.b.c'], 'test');
 });
 
@@ -680,7 +680,7 @@ test('setting array elements creates sparse arrays correctly', t => {
 test('invalid path edge cases for indexEnd state', t => {
 	// Test invalid character after closing bracket with backslash
 	t.throws(() => {
-		getProperty({}, '[0]\\x');
+		getProperty({}, String.raw`[0]\x`);
 	}, {message: 'Invalid character after an index'});
 
 	// Test closing bracket followed by another closing bracket
@@ -731,7 +731,7 @@ test('unflatten - bracket indexes and escapes', t => {
 
 	// Ensure getProperty agrees with produced structure
 	t.is(getProperty(result, 'users[0].name'), 'Ada');
-	t.is(getProperty(result, 'a\\.b.c'), 1);
+	t.is(getProperty(result, String.raw`a\.b.c`), 1);
 });
 
 test('unflatten - disallowed keys are ignored safely', t => {
@@ -1100,19 +1100,19 @@ test('edge cases - unicode and special characters', t => {
 	t.is(getProperty(object, '🦄.🌈'), 'unicode');
 
 	// Properties with dots (escaped)
-	setProperty(object, 'key\\.with\\.dots', 'escaped');
-	t.is(getProperty(object, 'key\\.with\\.dots'), 'escaped');
+	setProperty(object, String.raw`key\.with\.dots`, 'escaped');
+	t.is(getProperty(object, String.raw`key\.with\.dots`), 'escaped');
 	t.is(object['key.with.dots'], 'escaped');
 
 	// Properties with brackets (escaped)
-	setProperty(object, 'key\\[with\\]brackets', 'escaped-brackets');
-	t.is(getProperty(object, 'key\\[with\\]brackets'), 'escaped-brackets');
-	t.is(object['key[with\\]brackets'], 'escaped-brackets');
+	setProperty(object, String.raw`key\[with\]brackets`, 'escaped-brackets');
+	t.is(getProperty(object, String.raw`key\[with\]brackets`), 'escaped-brackets');
+	t.is(object[String.raw`key[with\]brackets`], 'escaped-brackets');
 
 	// Mixed escaping and array notation
-	setProperty(object, 'items\\[special\\][0].value', 'mixed');
-	t.is(getProperty(object, 'items\\[special\\][0].value'), 'mixed');
-	t.true(Array.isArray(object['items[special\\]']));
+	setProperty(object, String.raw`items\[special\][0].value`, 'mixed');
+	t.is(getProperty(object, String.raw`items\[special\][0].value`), 'mixed');
+	t.true(Array.isArray(object[String.raw`items[special\]`]));
 });
 
 test('edge cases - type coercion and falsy values', t => {

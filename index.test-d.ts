@@ -21,13 +21,10 @@ expectTypeOf(getProperty(42, 'foo', 123)).toEqualTypeOf<number>();
 
 expectTypeOf(getProperty({foo: {bar: 'unicorn'}}, 'foo.bar')).toBeString();
 expectTypeOf(getProperty({foo: {bar: 'a'}}, 'foo.notDefined.deep')).toBeUndefined();
-expectTypeOf(
-	getProperty({foo: {bar: 'a'}}, 'foo.notDefined.deep', 'default value'),
-).toBeString();
-expectTypeOf(
-	getProperty({foo: {'dot.dot': 'unicorn'}}, 'foo.dot\\.dot'), // eslint-disable-line @typescript-eslint/naming-convention
-	// @ts-expect-error type-fest's `Get` not smart enough to deal with escaped dots
-).toEqualTypeOf<string>();
+expectTypeOf(getProperty({foo: {bar: 'a'}}, 'foo.notDefined.deep', 'default value')).toBeString();
+
+// @ts-expect-error type-fest's `Get` not smart enough to deal with escaped dots
+expectTypeOf(getProperty({foo: {'dot.dot': 'unicorn'}}, String.raw`foo.dot\.dot`)).toEqualTypeOf<string>(); // eslint-disable-line @typescript-eslint/naming-convention
 
 const object = {foo: {bar: 'a'}};
 expectTypeOf(setProperty(object, 'foo.bar', 'b')).toEqualTypeOf(object);
