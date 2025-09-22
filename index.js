@@ -3,7 +3,20 @@ const isObject = value => {
 	return value !== null && (type === 'object' || type === 'function');
 };
 
-const isEmptyObject = value => isObject(value) && Object.keys(value).length === 0;
+// Optimized empty check without creating an array.
+const isEmptyObject = value => {
+	if (!isObject(value)) {
+		return false;
+	}
+
+	for (const key in value) {
+		if (Object.hasOwn(value, key)) {
+			return false;
+		}
+	}
+
+	return true;
+};
 
 const disallowedKeys = new Set([
 	'__proto__',
@@ -11,54 +24,83 @@ const disallowedKeys = new Set([
 	'constructor',
 ]);
 
-const digits = new Set('0123456789');
+// Maximum allowed array index to prevent DoS via memory exhaustion.
+const MAX_ARRAY_INDEX = 1_000_000;
 
-function isValidArrayIndex(value) {
-	return typeof value === 'string'
-		&& /^\d+$/.test(value)
-		&& Number.parseInt(value, 10) >= 0
-		&& (value === '0' || !value.startsWith('0')); // Reject leading zeros except for '0' itself
-}
+// Optimized digit check without Set overhead.
+const isDigit = character => character >= '0' && character <= '9';
 
-function normalizeKey(key, object, pathIndex) {
-	// Convert dot notation array indices to numbers (e.g., 'users.0' -> 'users', 0)
-	// Only allow this when not the first path segment to preserve string index blocking
-	if (pathIndex > 0 && typeof key === 'string' && Array.isArray(object) && isValidArrayIndex(key)) {
-		return Number.parseInt(key, 10);
+// Check if a segment should be coerced to a number.
+function shouldCoerceToNumber(segment) {
+	// Only coerce valid non-negative integers without leading zeros.
+	if (segment === '0') {
+		return true;
 	}
 
-	return key;
+	if (/^[1-9]\d*$/.test(segment)) {
+		const parsedNumber = Number.parseInt(segment, 10);
+		// Check within safe integer range and under MAX_ARRAY_INDEX to prevent DoS.
+		return parsedNumber <= Number.MAX_SAFE_INTEGER && parsedNumber <= MAX_ARRAY_INDEX;
+	}
+
+	return false;
 }
 
-function getPathSegments(path) {
+// Helper to process a path segment (eliminates duplication).
+function processSegment(segment, parts) {
+	if (disallowedKeys.has(segment)) {
+		return false; // Signal to return empty array.
+	}
+
+	if (segment && shouldCoerceToNumber(segment)) {
+		parts.push(Number.parseInt(segment, 10));
+	} else {
+		parts.push(segment);
+	}
+
+	return true;
+}
+
+export function parsePath(path) { // eslint-disable-line complexity
+	if (typeof path !== 'string') {
+		throw new TypeError(`Expected a string, got ${typeof path}`);
+	}
+
 	const parts = [];
 	let currentSegment = '';
 	let currentPart = 'start';
-	let isIgnoring = false;
+	let isEscaping = false;
+	let position = 0;
 
 	for (const character of path) {
-		switch (character) {
-			case '\\': {
-				if (currentPart === 'index') {
-					throw new Error('Invalid character in an index');
-				}
+		position++;
 
-				if (currentPart === 'indexEnd') {
-					throw new Error('Invalid character after an index');
-				}
+		// Handle escaping.
+		if (isEscaping) {
+			currentSegment += character;
+			isEscaping = false;
+			continue;
+		}
 
-				if (isIgnoring) {
-					currentSegment += character;
-				}
-
-				currentPart = 'property';
-				isIgnoring = !isIgnoring;
-				break;
+		// Handle escape character.
+		if (character === '\\') {
+			if (currentPart === 'index') {
+				throw new Error(`Invalid character '${character}' in an index at position ${position}`);
 			}
 
+			if (currentPart === 'indexEnd') {
+				throw new Error(`Invalid character '${character}' after an index at position ${position}`);
+			}
+
+			isEscaping = true;
+			currentPart = currentPart === 'start' ? 'property' : currentPart;
+			continue;
+		}
+
+		switch (character) {
 			case '.': {
 				if (currentPart === 'index') {
-					throw new Error('Invalid character in an index');
+					throw new Error(`Invalid character '${character}' in an index at position ${position}`);
 				}
 
 				if (currentPart === 'indexEnd') {
@@ -66,17 +108,10 @@ function getPathSegments(path) {
 					break;
 				}
 
-				if (isIgnoring) {
-					isIgnoring = false;
-					currentSegment += character;
-					break;
-				}
-
-				if (disallowedKeys.has(currentSegment)) {
+				if (!processSegment(currentSegment, parts)) {
 					return [];
 				}
 
-				parts.push(currentSegment);
 				currentSegment = '';
 				currentPart = 'property';
 				break;
@@ -84,7 +119,7 @@ function getPathSegments(path) {
 
 			case '[': {
 				if (currentPart === 'index') {
-					throw new Error('Invalid character in an index');
+					throw new Error(`Invalid character '${character}' in an index at position ${position}`);
 				}
 
 				if (currentPart === 'indexEnd') {
@@ -92,18 +127,12 @@ function getPathSegments(path) {
 					break;
 				}
 
-				if (isIgnoring) {
-					isIgnoring = false;
-					currentSegment += character;
-					break;
-				}
-
-				if (currentPart === 'property') {
-					if (disallowedKeys.has(currentSegment)) {
+				if (currentPart === 'property' || currentPart === 'start') {
+					// Only push if we have content OR if we're in 'property' mode (not 'start')
+					if ((currentSegment || currentPart === 'property') && !processSegment(currentSegment, parts)) {
 						return [];
 					}
 
-					parts.push(currentSegment);
 					currentSegment = '';
 				}
 
@@ -113,35 +142,55 @@ function getPathSegments(path) {
 
 			case ']': {
 				if (currentPart === 'index') {
-					parts.push(Number.parseInt(currentSegment, 10));
-					currentSegment = '';
-					currentPart = 'indexEnd';
+					if (currentSegment === '') {
+						// Empty brackets - backtrack and treat as literal
+						const lastSegment = parts.pop() || '';
+						currentSegment = lastSegment + '[]';
+						currentPart = 'property';
+					} else {
+						// Index must be digits only (enforced by default case)
+						const parsedNumber = Number.parseInt(currentSegment, 10);
+						const isValidInteger = !Number.isNaN(parsedNumber)
+							&& Number.isFinite(parsedNumber)
+							&& parsedNumber >= 0
+							&& parsedNumber <= Number.MAX_SAFE_INTEGER
+							&& parsedNumber <= MAX_ARRAY_INDEX
+							&& currentSegment === String(parsedNumber);
+
+						if (isValidInteger) {
+							parts.push(parsedNumber);
+						} else {
+							// Keep as string if not a valid integer representation or exceeds MAX_ARRAY_INDEX
+							parts.push(currentSegment);
+						}
+
+						currentSegment = '';
+						currentPart = 'indexEnd';
+					}
+
 					break;
 				}
 
 				if (currentPart === 'indexEnd') {
-					throw new Error('Invalid character after an index');
+					throw new Error(`Invalid character '${character}' after an index at position ${position}`);
 				}
 
-				// Falls through
+				// In property context, treat ] as literal character
+				currentSegment += character;
+				break;
 			}
 
 			default: {
-				if (currentPart === 'index' && !digits.has(character)) {
-					throw new Error('Invalid character in an index');
+				if (currentPart === 'index' && !isDigit(character)) {
+					throw new Error(`Invalid character '${character}' in an index at position ${position}`);
 				}
 
 				if (currentPart === 'indexEnd') {
-					throw new Error('Invalid character after an index');
+					throw new Error(`Invalid character '${character}' after an index at position ${position}`);
 				}
 
 				if (currentPart === 'start') {
 					currentPart = 'property';
-				}
-
-				if (isIgnoring) {
-					isIgnoring = false;
-					currentSegment += '\\';
 				}
 
 				currentSegment += character;
@@ -149,17 +198,17 @@ function getPathSegments(path) {
 		}
 	}
 
-	if (isIgnoring) {
+	// Handle unfinished escaping (trailing backslash)
+	if (isEscaping) {
 		currentSegment += '\\';
 	}
 
+	// Handle end of path
 	switch (currentPart) {
 		case 'property': {
-			if (disallowedKeys.has(currentSegment)) {
+			if (!processSegment(currentSegment, parts)) {
 				return [];
 			}
-
-			parts.push(currentSegment);
 
 			break;
 		}
@@ -170,7 +219,6 @@ function getPathSegments(path) {
 
 		case 'start': {
 			parts.push('');
-
 			break;
 		}
 		// No default
@@ -179,49 +227,62 @@ function getPathSegments(path) {
 	return parts;
 }
 
-function isStringIndex(object, key) {
-	if (!Array.isArray(object) || typeof key === 'number') {
-		return false;
+function normalizePath(path) {
+	if (typeof path === 'string') {
+		return parsePath(path);
 	}
 
-	// Block canonical numeric strings only: '0', '12', not '00' or '01'
-	const parsed = Number.parseInt(key, 10);
-	return Number.isInteger(parsed) && String(parsed) === key;
-}
+	if (Array.isArray(path)) {
+		const normalized = [];
 
-function assertNotStringIndex(object, key) {
-	if (isStringIndex(object, key)) {
-		throw new Error('Cannot use string index');
+		for (const [index, segment] of path.entries()) {
+			// Type validation.
+			if (typeof segment !== 'string' && typeof segment !== 'number') {
+				throw new TypeError(`Expected a string or number for path segment at index ${index}, got ${typeof segment}`);
+			}
+
+			// Validate numbers are finite (reject NaN, Infinity, -Infinity).
+			if (typeof segment === 'number' && !Number.isFinite(segment)) {
+				throw new TypeError(`Path segment at index ${index} must be a finite number, got ${segment}`);
+			}
+
+			// Check for disallowed keys.
+			if (disallowedKeys.has(segment)) {
+				return [];
+			}
+
+			// Normalize numeric strings to numbers for simplicity.
+			// This treats ['items', '0'] the same as ['items', 0].
+			if (typeof segment === 'string' && shouldCoerceToNumber(segment)) {
+				normalized.push(Number.parseInt(segment, 10));
+			} else {
+				normalized.push(segment);
+			}
+		}
+
+		return normalized;
 	}
+
+	return [];
 }
 
 export function getProperty(object, path, value) {
-	if (!isObject(object) || typeof path !== 'string') {
+	if (!isObject(object) || (typeof path !== 'string' && !Array.isArray(path))) {
 		return value === undefined ? object : value;
 	}
 
-	const pathArray = getPathSegments(path);
+	const pathArray = normalizePath(path);
 	if (pathArray.length === 0) {
 		return value;
 	}
 
 	for (let index = 0; index < pathArray.length; index++) {
 		const key = pathArray[index];
-		const normalizedKey = normalizeKey(key, object, index);
-
-		// Only check for string index if we're not using a normalized (converted) key
-		if (normalizedKey === key && isStringIndex(object, key)) {
-			object = index === pathArray.length - 1 ? undefined : null;
-		} else {
-			object = object[normalizedKey];
-		}
+		object = object[key];
 
 		if (object === undefined || object === null) {
-			// `object` is either `undefined` or `null` so we want to stop the loop, and
-			// if this is not the last bit of the path, and
-			// if it didn't return `undefined`
-			// it would return `null` if `object` is `null`
-			// but we want `get({foo: null}, 'foo.bar')` to equal `undefined`, or the supplied value, not `null`
+			// Return default value if we hit undefined/null before the end of the path.
+			// This ensures get({foo: null}, 'foo.bar') returns the default value, not null.
 			if (index !== pathArray.length - 1) {
 				return value;
 			}
@@ -234,64 +295,60 @@ export function getProperty(object, path, value) {
 }
 
 export function setProperty(object, path, value) {
-	if (!isObject(object) || typeof path !== 'string') {
+	if (!isObject(object) || (typeof path !== 'string' && !Array.isArray(path))) {
 		return object;
 	}
 
 	const root = object;
-	const pathArray = getPathSegments(path);
+	const pathArray = normalizePath(path);
+
+	if (pathArray.length === 0) {
+		return object;
+	}
 
 	for (let index = 0; index < pathArray.length; index++) {
 		const key = pathArray[index];
-		const normalizedKey = normalizeKey(key, object, index);
-
-		// Only check for string index if we're not using a normalized (converted) key
-		if (normalizedKey === key) {
-			assertNotStringIndex(object, key);
-		}
 
 		if (index === pathArray.length - 1) {
-			object[normalizedKey] = value;
-		} else if (!isObject(object[normalizedKey])) {
+			object[key] = value;
+		} else if (!isObject(object[key])) {
 			const nextKey = pathArray[index + 1];
-			const shouldCreateArray = typeof nextKey === 'number'
-				|| (typeof nextKey === 'string' && isValidArrayIndex(nextKey));
-			object[normalizedKey] = shouldCreateArray ? [] : {};
+			// Create arrays for numeric indices, objects for string keys
+			const shouldCreateArray = typeof nextKey === 'number';
+			object[key] = shouldCreateArray ? [] : {};
 		}
 
-		object = object[normalizedKey];
+		object = object[key];
 	}
 
 	return root;
 }
 
 export function deleteProperty(object, path) {
-	if (!isObject(object) || typeof path !== 'string') {
+	if (!isObject(object) || (typeof path !== 'string' && !Array.isArray(path))) {
 		return false;
 	}
 
-	const pathArray = getPathSegments(path);
+	const pathArray = normalizePath(path);
+
+	if (pathArray.length === 0) {
+		return false;
+	}
 
 	for (let index = 0; index < pathArray.length; index++) {
 		const key = pathArray[index];
-		const normalizedKey = normalizeKey(key, object, index);
-
-		// Only check for string index if we're not using a normalized (converted) key
-		if (normalizedKey === key) {
-			assertNotStringIndex(object, key);
-		}
 
 		if (index === pathArray.length - 1) {
-			const existed = Object.hasOwn(object, normalizedKey);
+			const existed = Object.hasOwn(object, key);
 			if (!existed) {
 				return false;
 			}
 
-			delete object[normalizedKey];
+			delete object[key];
 			return true;
 		}
 
-		object = object[normalizedKey];
+		object = object[key];
 
 		if (!isObject(object)) {
 			return false;
@@ -300,66 +357,103 @@ export function deleteProperty(object, path) {
 }
 
 export function hasProperty(object, path) {
-	if (!isObject(object) || typeof path !== 'string') {
+	if (!isObject(object) || (typeof path !== 'string' && !Array.isArray(path))) {
 		return false;
 	}
 
-	const pathArray = getPathSegments(path);
+	const pathArray = normalizePath(path);
 	if (pathArray.length === 0) {
 		return false;
 	}
 
-	for (const [index, key] of pathArray.entries()) {
-		const normalizedKey = normalizeKey(key, object, index);
-
-		// Only check for string index if we're not using a normalized (converted) key
-		const shouldCheckStringIndex = normalizedKey === key && isStringIndex(object, key);
-
-		if (!isObject(object) || !(normalizedKey in object) || shouldCheckStringIndex) {
+	for (const key of pathArray) {
+		if (!isObject(object) || !(key in object)) {
 			return false;
 		}
 
-		object = object[normalizedKey];
+		object = object[key];
 	}
 
 	return true;
 }
 
-// TODO: Backslashes with no effect should not be escaped
 export function escapePath(path) {
 	if (typeof path !== 'string') {
-		throw new TypeError('Expected a string');
+		throw new TypeError(`Expected a string, got ${typeof path}`);
 	}
 
+	// Escape special characters in one pass
 	return path.replaceAll(/[\\.[]/g, String.raw`\$&`);
 }
 
-// The keys returned by Object.entries() for arrays are strings
-function entries(value) {
-	const result = Object.entries(value);
+function normalizeEntries(value) {
+	const entries = Object.entries(value);
 	if (Array.isArray(value)) {
-		return result.map(([key, value]) => [Number(key), value]);
+		return entries.map(([key, entryValue]) => {
+			// Use shouldCoerceToNumber for consistency with parsePath
+			const normalizedKey = shouldCoerceToNumber(key)
+				? Number.parseInt(key, 10)
+				: key;
+			return [normalizedKey, entryValue];
+		});
 	}
 
-	return result;
+	return entries;
 }
 
-function stringifyPath(pathSegments) {
-	let result = '';
+export function stringifyPath(pathSegments, options = {}) {
+	if (!Array.isArray(pathSegments)) {
+		throw new TypeError(`Expected an array, got ${typeof pathSegments}`);
+	}
 
-	for (let [index, segment] of entries(pathSegments)) {
+	const {preferDotForIndices = false} = options;
+	const parts = [];
+
+	for (const [index, segment] of pathSegments.entries()) {
+		// Validate segment types at runtime
+		if (typeof segment !== 'string' && typeof segment !== 'number') {
+			throw new TypeError(`Expected a string or number for path segment at index ${index}, got ${typeof segment}`);
+		}
+
 		if (typeof segment === 'number') {
-			result += `[${segment}]`;
-		} else {
-			segment = escapePath(segment);
-			result += index === 0 ? segment : `.${segment}`;
+			// Handle numeric indices
+			if (!Number.isInteger(segment) || segment < 0) {
+				// Non-integer or negative numbers are treated as string keys
+				const escaped = escapePath(String(segment));
+				parts.push(index === 0 ? escaped : `.${escaped}`);
+			} else if (preferDotForIndices && index > 0) {
+				parts.push(`.${segment}`);
+			} else {
+				parts.push(`[${segment}]`);
+			}
+		} else if (typeof segment === 'string') {
+			if (segment === '') {
+				// Empty string handling
+				if (index === 0) {
+					// Start with empty string, no prefix needed
+				} else {
+					parts.push('.');
+				}
+			} else if (shouldCoerceToNumber(segment)) {
+				// Numeric strings are normalized to numbers
+				const numericValue = Number.parseInt(segment, 10);
+				if (preferDotForIndices && index > 0) {
+					parts.push(`.${numericValue}`);
+				} else {
+					parts.push(`[${numericValue}]`);
+				}
+			} else {
+				// Regular strings use dot notation
+				const escaped = escapePath(segment);
+				parts.push(index === 0 ? escaped : `.${escaped}`);
+			}
 		}
 	}
 
-	return result;
+	return parts.join('');
 }
 
-function * deepKeysIterator(object, currentPath = []) {
+function * deepKeysIterator(object, currentPath = [], ancestors = new Set()) {
 	if (!isObject(object) || isEmptyObject(object)) {
 		if (currentPath.length > 0) {
 			yield stringifyPath(currentPath);
@@ -368,9 +462,22 @@ function * deepKeysIterator(object, currentPath = []) {
 		return;
 	}
 
-	for (const [key, value] of entries(object)) {
-		yield * deepKeysIterator(value, [...currentPath, key]);
+	// Check if this object is already in the current path (circular reference)
+	if (ancestors.has(object)) {
+		return;
 	}
+
+	// Add to ancestors, recurse, then remove (backtrack)
+	ancestors.add(object);
+
+	// Reuse currentPath array by push/pop instead of creating new arrays
+	for (const [key, value] of normalizeEntries(object)) {
+		currentPath.push(key);
+		yield * deepKeysIterator(value, currentPath, ancestors);
+		currentPath.pop();
+	}
+
+	ancestors.delete(object);
 }
 
 export function deepKeys(object) {

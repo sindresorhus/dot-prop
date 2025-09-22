@@ -4,7 +4,7 @@ import {type Get} from 'type-fest';
 Get the value of the property at the given path.
 
 @param object - Object or array to get the `path` value.
-@param path - Path of the property in the object, using `.` to separate each nested key. Use `\\.` if you have a `.` in the key. Array indices can be accessed using bracket notation (`'users[0].name'`) or dot notation (`'users.0.name'`).
+@param path - Path of the property in the object, using `.` to separate each nested key. Use `\\.` if you have a `.` in the key. Array indices can be accessed using bracket notation (`'users[0].name'`) or dot notation (`'users.0.name'`). Both syntaxes are equivalent and will create arrays when setting values. Numeric strings in dot notation (like `'users.0.name'`) are automatically coerced to numbers. When using array paths, numeric strings are normalized to numbers for simplicity (treating `['users', '0']` the same as `['users', 0]`).
 @param defaultValue - Default value.
 
 @example
@@ -32,15 +32,17 @@ getProperty({foo: [{bar: 'unicorn'}]}, 'foo.0.bar');
 */
 export function getProperty<ObjectType, PathType extends string, DefaultValue = undefined>(
 	object: ObjectType,
-	path: PathType,
+	path: PathType | ReadonlyArray<string | number>,
 	defaultValue?: DefaultValue
-): ObjectType extends Record<string, unknown> | unknown[] ? (unknown extends Get<ObjectType, PathType> ? DefaultValue : Get<ObjectType, PathType>) : DefaultValue extends undefined ? unknown : DefaultValue;
+): ObjectType extends Record<string, unknown> | unknown[]
+	? (unknown extends Get<ObjectType, PathType> ? DefaultValue : Get<ObjectType, PathType>)
+	: DefaultValue extends undefined ? unknown : DefaultValue;
 
 /**
 Set the property at the given path to the given value.
 
 @param object - Object or array to set the `path` value.
-@param path - Path of the property in the object, using `.` to separate each nested key. Use `\\.` if you have a `.` in the key. Array indices can be accessed using bracket notation (`'users[0].name'`) or dot notation (`'users.0.name'`).
+@param path - Path of the property in the object, using `.` to separate each nested key. Use `\\.` if you have a `.` in the key. Array indices can be accessed using bracket notation (`'users[0].name'`) or dot notation (`'users.0.name'`). Both syntaxes are equivalent and will create arrays when setting values. Numeric strings in dot notation (like `'users.0.name'`) are automatically coerced to numbers. When using array paths, numeric strings are normalized to numbers for simplicity (treating `['users', '0']` the same as `['users', 0]`).
 @param value - Value to set at `path`.
 @returns The object.
 
@@ -72,7 +74,7 @@ console.log(object);
 */
 export function setProperty<ObjectType extends (Record<string, any> | unknown[])>(
 	object: ObjectType,
-	path: string,
+	path: string | ReadonlyArray<string | number>,
 	value: unknown
 ): ObjectType;
 
@@ -80,7 +82,7 @@ export function setProperty<ObjectType extends (Record<string, any> | unknown[])
 Check whether the property at the given path exists.
 
 @param object - Object or array to test the `path` value.
-@param path - Path of the property in the object, using `.` to separate each nested key. Use `\\.` if you have a `.` in the key. Array indices can be accessed using bracket notation (`'users[0].name'`) or dot notation (`'users.0.name'`).
+@param path - Path of the property in the object, using `.` to separate each nested key. Use `\\.` if you have a `.` in the key. Array indices can be accessed using bracket notation (`'users[0].name'`) or dot notation (`'users.0.name'`). Both syntaxes are equivalent and will create arrays when setting values. Numeric strings in dot notation (like `'users.0.name'`) are automatically coerced to numbers. When using array paths, numeric strings are normalized to numbers for simplicity (treating `['users', '0']` the same as `['users', 0]`).
 
 @example
 ```
@@ -90,13 +92,13 @@ hasProperty({foo: {bar: 'unicorn'}}, 'foo.bar');
 //=> true
 ```
 */
-export function hasProperty(object: Record<string, any> | unknown[] | undefined, path: string): boolean;
+export function hasProperty(object: Record<string, any> | unknown[] | undefined, path: string | ReadonlyArray<string | number>): boolean;
 
 /**
 Delete the property at the given path.
 
 @param object - Object or array to delete the `path` value.
-@param path - Path of the property in the object, using `.` to separate each nested key. Use `\\.` if you have a `.` in the key. Array indices can be accessed using bracket notation (`'users[0].name'`) or dot notation (`'users.0.name'`).
+@param path - Path of the property in the object, using `.` to separate each nested key. Use `\\.` if you have a `.` in the key. Array indices can be accessed using bracket notation (`'users[0].name'`) or dot notation (`'users.0.name'`). Both syntaxes are equivalent and will create arrays when setting values. Numeric strings in dot notation (like `'users.0.name'`) are automatically coerced to numbers. When using array paths, numeric strings are normalized to numbers for simplicity (treating `['users', '0']` the same as `['users', 0]`).
 @returns A boolean of whether the property existed before being deleted.
 
 @example
@@ -114,7 +116,7 @@ console.log(object);
 //=> {foo: {bar: {y: 'x'}}}
 ```
 */
-export function deleteProperty(object: Record<string, any> | unknown[], path: string): boolean;
+export function deleteProperty(object: Record<string, any> | unknown[], path: string | ReadonlyArray<string | number>): boolean;
 
 /**
 Escape special characters in a path. Useful for sanitizing user input.
@@ -138,6 +140,62 @@ console.log(getProperty(object, escapedPath));
 ```
 */
 export function escapePath(path: string): string;
+
+/**
+Parse a dot path into an array of path segments.
+
+@param path - Path to parse. Use `\\.` if you have a `.` in the key. Array indices can be accessed using bracket notation (`'users[0].name'`) or dot notation (`'users.0.name'`). Both syntaxes are equivalent. Numeric strings in dot notation (like `'users.0.name'`) are automatically coerced to numbers.
+@returns An array of path segments where numbers represent array indices and strings represent object keys.
+
+@example
+```
+import {parsePath} from 'dot-prop';
+
+parsePath('foo.bar');
+//=> ['foo', 'bar']
+
+parsePath('foo[0].bar');
+//=> ['foo', 0, 'bar']
+
+parsePath('foo.0.bar');
+//=> ['foo', 0, 'bar']
+
+parsePath('foo\\.bar');
+//=> ['foo.bar']
+
+// Use case: Iterate over path segments to build up a nested object
+const path = 'users[0].profile.settings.theme';
+const segments = parsePath(path);
+//=> ['users', 0, 'profile', 'settings', 'theme']
+```
+*/
+export function parsePath(path: string): Array<string | number>;
+
+/**
+Convert an array of path segments back into a path string.
+
+@param pathSegments - Array of path segments where numbers represent array indices and strings represent object keys.
+@param options - Options for stringifying the path.
+
+@example
+```
+import {stringifyPath} from 'dot-prop';
+
+stringifyPath(['foo', 'bar']);
+//=> 'foo.bar'
+
+stringifyPath(['foo', 0, 'bar']);
+//=> 'foo[0].bar'
+
+stringifyPath(['foo', '0', 'bar']);
+//=> 'foo[0].bar'
+
+// With preferDotForIndices option
+stringifyPath(['foo', 0, 'bar'], {preferDotForIndices: true});
+//=> 'foo.0.bar'
+```
+*/
+export function stringifyPath(pathSegments: ReadonlyArray<string | number>, options?: {preferDotForIndices?: boolean}): string;
 
 /**
 Returns an array of every path. Non-empty plain objects and arrays are deeply recursed and are not themselves included.

@@ -70,6 +70,38 @@ console.log(object);
 //=> {foo: {bar: {y: 'x'}}}
 ```
 
+### Array paths
+
+For improved performance and interoperability with other libraries, you can also pass paths as arrays instead of strings. This avoids the overhead of parsing string paths.
+
+```js
+import {getProperty, setProperty} from 'dot-prop';
+
+const object = {
+	users: [
+		{name: 'Alice', role: 'admin'},
+		{name: 'Bob', role: 'user'}
+	]
+};
+
+// Using array paths - no parsing overhead
+getProperty(object, ['users', 0, 'name']);
+//=> 'Alice'
+
+setProperty(object, ['users', 1, 'role'], 'moderator');
+console.log(object.users[1].role);
+//=> 'moderator'
+
+// Useful for interoperability with libraries that return paths as arrays
+const pathFromOtherLib = ['users', 0, 'profile', 'settings'];
+setProperty(object, pathFromOtherLib, {theme: 'dark'});
+```
+
+Array paths:
+- Avoid the parse/stringify cycle when you already have path segments
+- Work with all functions: `getProperty`, `setProperty`, `hasProperty`, `deleteProperty`
+- Numeric strings are automatically normalized to numbers for simplicity
+
 ## API
 
 ### getProperty(object, path, defaultValue?)
@@ -115,6 +147,73 @@ console.log(getProperty(object, escapedPath));
 //=> '🍄 The princess is in another castle!'
 ```
 
+### parsePath(path)
+
+Parse a dot path into an array of path segments.
+
+Returns an array of path segments where numbers represent array indices and strings represent object keys.
+
+```js
+import {parsePath} from 'dot-prop';
+
+parsePath('foo.bar');
+//=> ['foo', 'bar']
+
+parsePath('foo[0].bar');
+//=> ['foo', 0, 'bar']
+
+parsePath('foo.0.bar');
+//=> ['foo', 0, 'bar']
+
+parsePath('foo\\.bar');
+//=> ['foo.bar']
+
+// Use case: Iterate over path segments to build up a nested object
+const path = 'users[0].profile.settings.theme';
+const segments = parsePath(path);
+//=> ['users', 0, 'profile', 'settings', 'theme']
+```
+
+### stringifyPath(pathSegments, options?)
+
+Convert an array of path segments back into a path string.
+
+Returns a string path that can be used with other dot-prop functions.
+
+```js
+import {stringifyPath} from 'dot-prop';
+
+stringifyPath(['foo', 'bar']);
+//=> 'foo.bar'
+
+stringifyPath(['foo', 0, 'bar']);
+//=> 'foo[0].bar'
+
+stringifyPath(['foo', '0', 'bar']);
+//=> 'foo[0].bar'
+
+// With preferDotForIndices option
+stringifyPath(['foo', 0, 'bar'], {preferDotForIndices: true});
+//=> 'foo.0.bar'
+```
+
+#### pathSegments
+
+Type: `Array<string | number>`
+
+Array of path segments where numbers represent array indices and strings represent object keys.
+
+#### options
+
+Type: `object`
+
+##### preferDotForIndices
+
+Type: `boolean`\
+Default: `false`
+
+When `true`, numeric indices will use dot notation instead of bracket notation when not the first segment.
+
 ### deepKeys(object)
 
 Returns an array of every path. Non-empty plain objects and arrays are deeply recursed and are not themselves included.
@@ -154,13 +253,13 @@ You are allowed to pass in `undefined` as the object to the `get` and `has` func
 
 #### path
 
-Type: `string`
+Type: `string | Array<string | number>`
 
-Path of the property in the object, using `.` to separate each nested key.
+Path of the property in the object.
 
-Use `\\.` if you have a `.` in the key.
+**String paths**: Use `.` to separate each nested key. Use `\\.` if you have a `.` in the key. Array indices can be accessed using bracket notation (like `'users[0].name'`) or dot notation (like `'users.0.name'`). Both syntaxes are equivalent and will create arrays when setting values. Numeric strings in dot notation (like `'users.0.name'`) are automatically coerced to numbers.
 
-Array indices can be accessed using bracket notation (like `'users[0].name'`) or dot notation (like `'users.0.name'`). Both syntaxes are equivalent and will create arrays when setting values.
+**Array paths**: Pass an array of path segments for better performance and interoperability. Numbers create arrays (like `['users', 0, 'name']`). Numeric strings are normalized to numbers for simplicity. No parsing overhead.
 
 The following path components are invalid and results in `undefined` being returned: `__proto__`, `prototype`, `constructor`.
 

@@ -7,6 +7,8 @@ import {
 	escapePath,
 	deepKeys,
 	unflatten,
+	parsePath,
+	stringifyPath,
 } from './index.js';
 
 test('getProperty', t => {
@@ -26,11 +28,11 @@ test('getProperty', t => {
 	t.is(getProperty({foo: {bar: 'a'}}, 'foo.fake.fake2', 'some value'), 'some value');
 	t.is(getProperty({foo: {}}, 'foo.fake', 'some value'), 'some value');
 	t.true(getProperty({'\\': true}, '\\'));
-	t.true(getProperty({'\\foo': true}, String.raw`\foo`));
-	t.true(getProperty({'\\foo': true}, String.raw`\\foo`));
+	t.true(getProperty({foo: true}, String.raw`\foo`)); // \f is escaped to f
+	t.true(getProperty({'\\foo': true}, String.raw`\\foo`)); // \\f is escaped backslash + f
 	t.true(getProperty({'foo\\': true}, 'foo\\\\'));
 	t.true(getProperty({'bar\\': true}, 'bar\\'));
-	t.true(getProperty({'foo\\bar': true}, String.raw`foo\bar`));
+	t.true(getProperty({foobar: true}, String.raw`foo\bar`)); // \b is escaped to b
 	t.true(getProperty({'\\': {foo: true}}, String.raw`\\.foo`));
 	t.true(getProperty({'bar\\.': true}, String.raw`bar\\\.`));
 	t.true(getProperty({
@@ -101,14 +103,14 @@ test('getProperty - with array indexes', t => {
 	t.throws(() => getProperty({
 		'foo[5[': true,
 	}, 'foo[5['), {
-		message: 'Invalid character in an index',
+		message: 'Invalid character \'[\' in an index at position 6',
 	});
 	t.throws(() => getProperty({
 		'foo[5': {
 			bar: true,
 		},
 	}, 'foo[5.bar'), {
-		message: 'Invalid character in an index',
+		message: 'Invalid character \'.\' in an index at position 6',
 	});
 	t.true(getProperty({
 		'foo[5]': {
@@ -120,7 +122,7 @@ test('getProperty - with array indexes', t => {
 			bar: true,
 		},
 	}, String.raw`foo[5\].bar`), {
-		message: 'Invalid character in an index',
+		message: String.raw`Invalid character '\' in an index at position 6`,
 	});
 	t.throws(() => getProperty({
 		'foo[5': true,
@@ -130,18 +132,18 @@ test('getProperty - with array indexes', t => {
 	t.throws(() => getProperty({
 		'foo[bar]': true,
 	}, 'foo[bar]'), {
-		message: 'Invalid character in an index',
+		message: 'Invalid character \'b\' in an index at position 5',
 	});
 	t.false(getProperty({}, 'constructor[0]', false));
-	t.throws(() => getProperty({}, 'foo[constructor]', false), {
-		message: 'Invalid character in an index',
+	t.throws(() => getProperty({}, 'foo[constructor]'), {
+		message: 'Invalid character \'c\' in an index at position 5',
 	});
 
 	t.false(getProperty([], 'foo[0].bar', false));
 	t.true(getProperty({foo: [{bar: true}]}, 'foo[0].bar'));
 	t.false(getProperty({foo: ['bar']}, 'foo[1]', false));
 
-	t.false(getProperty([true], '0', false));
+	t.true(getProperty([true], '0', false));
 
 	t.true(getProperty({foo: [true]}, 'foo.0'));
 	t.true(getProperty({
@@ -156,18 +158,18 @@ test('getProperty - with array indexes', t => {
 
 	t.true(getProperty({foo: {'[0]': true}}, String.raw`foo.\[0]`));
 	t.throws(() => getProperty({foo: {'[0]': true}}, String.raw`foo.[0\]`), {
-		message: 'Invalid character in an index',
+		message: String.raw`Invalid character '\' in an index at position 7`,
 	});
 	t.true(getProperty({foo: {'\\': [true]}}, String.raw`foo.\\[0]`));
 	t.throws(() => getProperty({foo: {'[0]': true}}, String.raw`foo.[0\]`), {
-		message: 'Invalid character in an index',
+		message: String.raw`Invalid character '\' in an index at position 7`,
 	});
 
 	t.throws(() => getProperty({'foo[0': {'9]': true}}, 'foo[0.9]'), {
-		message: 'Invalid character in an index',
+		message: 'Invalid character \'.\' in an index at position 6',
 	});
 	t.throws(() => getProperty({'foo[-1]': true}, 'foo[-1]'), {
-		message: 'Invalid character in an index',
+		message: 'Invalid character \'-\' in an index at position 5',
 	});
 });
 
@@ -239,13 +241,11 @@ test('setProperty', t => {
 	setProperty(fixture5, '[0].foo[0]', true);
 	t.is(fixture5[0].foo[0], true);
 
-	t.throws(() => setProperty(fixture5, '1', true), {
-		message: 'Cannot use string index',
-	});
+	setProperty(fixture5, '1', true);
+	t.is(fixture5[1], true);
 
-	t.throws(() => setProperty(fixture5, '0.foo.0', true), {
-		message: 'Cannot use string index',
-	});
+	setProperty(fixture5, '0.foo.0', true);
+	t.is(fixture5[0].foo[0], true);
 
 	const fixture6 = {};
 
@@ -331,11 +331,17 @@ test('deleteProperty', t => {
 		},
 	}];
 
-	t.throws(() => deleteProperty(fixture4, '0.top.dog'), {
-		message: 'Cannot use string index',
-	});
-	t.true(deleteProperty(fixture4, '[0].top.dog'));
+	t.true(deleteProperty(fixture4, '0.top.dog'));
 	t.deepEqual(fixture4, [{top: {}}]);
+
+	// Test bracket notation deletion with fresh fixture
+	const fixture4b = [{
+		top: {
+			dog: 'sindre',
+		},
+	}];
+	t.true(deleteProperty(fixture4b, '[0].top.dog'));
+	t.deepEqual(fixture4b, [{top: {}}]);
 
 	const fixture5 = {
 		foo: [{
@@ -408,7 +414,7 @@ test('escapePath', t => {
 	t.is(escapePath('foo[0].bar'), String.raw`foo\[0]\.bar`);
 	t.is(escapePath('foo.bar[0].baz'), String.raw`foo\.bar\[0]\.baz`);
 	t.is(escapePath('[0].foo'), String.raw`\[0]\.foo`);
-	// TODO: The following three tests assume that backslashes with no effect are escaped. Update when this changes.
+	// These tests verify that all backslashes are escaped, even those without special meaning
 	t.is(escapePath(String.raw`\foo`), String.raw`\\foo`);
 	t.is(escapePath('foo\\'), 'foo\\\\');
 	t.is(escapePath('foo\\\\'), 'foo\\\\\\\\');
@@ -418,7 +424,7 @@ test('escapePath', t => {
 		escapePath(0);
 	}, {
 		instanceOf: TypeError,
-		message: 'Expected a string',
+		message: /Expected a string, got number/,
 	});
 });
 
@@ -524,11 +530,11 @@ test('deepKeys with cyclic references', t => {
 	const object = {foo: {}};
 	object.foo.bar = object;
 
-	// DeepKeys will hit stack overflow with cyclic references
-	// This is expected behavior as the library doesn't handle cycles
-	t.throws(() => {
-		deepKeys(object);
-	}, {message: 'Maximum call stack size exceeded'});
+	// DeepKeys now handles cyclic references gracefully
+	// Since foo contains a non-empty object (even with cycle), it doesn't yield 'foo'
+	// It tries to recurse but stops due to cycle detection
+	const keys = deepKeys(object);
+	t.deepEqual(keys, []);
 });
 
 test('edge cases for mixed array and object paths', t => {
@@ -681,17 +687,17 @@ test('invalid path edge cases for indexEnd state', t => {
 	// Test invalid character after closing bracket with backslash
 	t.throws(() => {
 		getProperty({}, String.raw`[0]\x`);
-	}, {message: 'Invalid character after an index'});
+	}, {message: String.raw`Invalid character '\' after an index at position 4`});
 
 	// Test closing bracket followed by another closing bracket
 	t.throws(() => {
 		getProperty({}, '[0]]');
-	}, {message: 'Invalid character after an index'});
+	}, {message: 'Invalid character \']\' after an index at position 4'});
 
 	// Test invalid character after index with default character
 	t.throws(() => {
 		getProperty({}, '[0]a');
-	}, {message: 'Invalid character after an index'});
+	}, {message: 'Invalid character \'a\' after an index at position 4'});
 });
 
 test('unflatten - basic dotted keys (issue #116)', t => {
@@ -939,26 +945,28 @@ test('deleteProperty - correct boolean returns', t => {
 	t.is(dotArrayObject.items[0], undefined);
 });
 
-test('improved string index detection', t => {
-	// Should block canonical numeric strings but allow non-canonical ones
+test('unified numeric behavior', t => {
+	// Numeric strings in dot notation become numbers
 	const array = [undefined, 'value', undefined];
 
-	// This should be blocked (canonical)
-	t.throws(() => setProperty(array, '1', 'blocked'), {message: /Cannot use string index/});
+	// '1' in dot notation becomes number 1 and sets the array element
+	setProperty(array, '1', 'updated');
+	t.is(array[1], 'updated');
 
-	// These should be allowed (non-canonical leading zeros)
+	// Leading zeros stay as string keys (not valid array indices)
 	const object = {arr: []};
-	setProperty(object, 'arr.01', 'leading-zero'); // '01' is non-canonical
-	setProperty(object, 'arr.00', 'double-zero'); // '00' is non-canonical
+	setProperty(object, 'arr.01', 'leading-zero'); // '01' stays as string
+	setProperty(object, 'arr.00', 'double-zero'); // '00' stays as string
 
 	t.is(object.arr['01'], 'leading-zero');
 	t.is(object.arr['00'], 'double-zero');
 	t.not(object.arr[1], 'leading-zero'); // Should not affect actual index 1
 
-	// Direct string access on arrays should still be blocked for canonical forms
+	// Direct numeric strings are converted to numbers
 	const array2 = ['a', 'b', 'c'];
-	t.throws(() => setProperty(array2, '0', 'blocked'), {message: /Cannot use string index/});
-	t.throws(() => setProperty(array2, '2', 'blocked'), {message: /Cannot use string index/});
+	setProperty(array2, '0', 'updated-a');
+	setProperty(array2, '2', 'updated-c');
+	t.deepEqual(array2, ['updated-a', 'b', 'updated-c']);
 });
 
 test('string index edge cases - leading zeros treated as strings', t => {
@@ -1033,7 +1041,6 @@ test('edge cases - property name conflicts', t => {
 	// Properties that could conflict with method names or built-ins
 	const object = {};
 	const conflictingNames = [
-		'constructor',
 		'toString',
 		'valueOf',
 		'hasOwnProperty',
@@ -1044,15 +1051,13 @@ test('edge cases - property name conflicts', t => {
 	];
 
 	for (const name of conflictingNames) {
-		if (name === 'constructor') {
-			// Constructor is blocked
-			t.is(getProperty(object, name), undefined);
-		} else {
-			setProperty(object, name, `value-${name}`);
-			t.is(getProperty(object, name), `value-${name}`);
-			t.true(hasProperty(object, name));
-		}
+		setProperty(object, name, `value-${name}`);
+		t.is(getProperty(object, name), `value-${name}`);
+		t.true(hasProperty(object, name));
 	}
+
+	// Constructor is a disallowed key and returns undefined
+	t.is(getProperty(object, 'constructor'), undefined);
 });
 
 test('edge cases - array length manipulation', t => {
@@ -1107,12 +1112,12 @@ test('edge cases - unicode and special characters', t => {
 	// Properties with brackets (escaped)
 	setProperty(object, String.raw`key\[with\]brackets`, 'escaped-brackets');
 	t.is(getProperty(object, String.raw`key\[with\]brackets`), 'escaped-brackets');
-	t.is(object[String.raw`key[with\]brackets`], 'escaped-brackets');
+	t.is(object['key[with]brackets'], 'escaped-brackets');
 
 	// Mixed escaping and array notation
 	setProperty(object, String.raw`items\[special\][0].value`, 'mixed');
 	t.is(getProperty(object, String.raw`items\[special\][0].value`), 'mixed');
-	t.true(Array.isArray(object[String.raw`items[special\]`]));
+	t.true(Array.isArray(object['items[special]']));
 });
 
 test('edge cases - type coercion and falsy values', t => {
@@ -1195,4 +1200,653 @@ test('edge cases - array holes and sparse arrays', t => {
 	setProperty(container, 'sparse.0', 'filled');
 	t.is(container.sparse[0], 'filled');
 	t.true(hasProperty(container, 'sparse.0'));
+});
+
+test('parsePath', t => {
+	// Basic property access
+	t.deepEqual(parsePath('foo'), ['foo']);
+	t.deepEqual(parsePath('foo.bar'), ['foo', 'bar']);
+	t.deepEqual(parsePath('foo.bar.baz'), ['foo', 'bar', 'baz']);
+
+	// Array indices - bracket notation returns numbers
+	t.deepEqual(parsePath('[0]'), [0]);
+	t.deepEqual(parsePath('foo[0]'), ['foo', 0]);
+	t.deepEqual(parsePath('foo[0].bar'), ['foo', 0, 'bar']);
+	t.deepEqual(parsePath('[0][1]'), [0, 1]);
+	t.deepEqual(parsePath('foo[0][1].bar'), ['foo', 0, 1, 'bar']);
+
+	// Array indices - dot notation returns numbers
+	t.deepEqual(parsePath('foo.0'), ['foo', 0]);
+	t.deepEqual(parsePath('foo.0.bar'), ['foo', 0, 'bar']);
+
+	// Escaped characters
+	t.deepEqual(parsePath(String.raw`foo\.bar`), ['foo.bar']);
+	t.deepEqual(parsePath(String.raw`foo\\.bar`), ['foo\\', 'bar']);
+	t.deepEqual(parsePath(String.raw`foo\[0]`), ['foo[0]']);
+	t.deepEqual(parsePath(String.raw`foo\.bar\.baz`), ['foo.bar.baz']);
+
+	// Empty paths
+	t.deepEqual(parsePath(''), ['']);
+	t.deepEqual(parsePath('.'), ['', '']);
+	t.deepEqual(parsePath('..'), ['', '', '']);
+
+	// Disallowed keys
+	t.deepEqual(parsePath('__proto__'), []);
+	t.deepEqual(parsePath('foo.__proto__'), []);
+	t.deepEqual(parsePath('prototype'), []);
+	t.deepEqual(parsePath('constructor'), []);
+	t.deepEqual(parsePath('foo.constructor.bar'), []);
+
+	// Complex paths
+	t.deepEqual(parsePath('a.b[0].c.d[1][2].e'), ['a', 'b', 0, 'c', 'd', 1, 2, 'e']);
+	t.deepEqual(parsePath(String.raw`foo\.bar[0].baz`), ['foo.bar', 0, 'baz']);
+
+	// Empty brackets treated as literal property name
+	t.deepEqual(parsePath('foo[]'), ['foo[]']);
+	t.deepEqual(parsePath('foo[].bar'), ['foo[]', 'bar']);
+	t.deepEqual(parsePath('[].bar'), ['[]', 'bar']);
+	t.deepEqual(parsePath('[]'), ['[]']);
+
+	// Use case from issue #119
+	const path = 'users.0.profile.settings.theme';
+	const segments = parsePath(path);
+	t.deepEqual(segments, ['users', 0, 'profile', 'settings', 'theme']);
+});
+
+test('stringifyPath', t => {
+	// Basic property paths
+	t.is(stringifyPath(['foo']), 'foo');
+	t.is(stringifyPath(['foo', 'bar']), 'foo.bar');
+	t.is(stringifyPath(['foo', 'bar', 'baz']), 'foo.bar.baz');
+
+	// Array indices - bracket notation by default
+	t.is(stringifyPath([0]), '[0]');
+	t.is(stringifyPath(['foo', 0]), 'foo[0]');
+	t.is(stringifyPath(['foo', 0, 'bar']), 'foo[0].bar');
+	t.is(stringifyPath([0, 1]), '[0][1]');
+	t.is(stringifyPath(['foo', 0, 1, 'bar']), 'foo[0][1].bar');
+
+	// Array indices - dot notation with preferDotForIndices option
+	t.is(stringifyPath(['foo', 0], {preferDotForIndices: true}), 'foo.0');
+	t.is(stringifyPath(['foo', 0, 'bar'], {preferDotForIndices: true}), 'foo.0.bar');
+	t.is(stringifyPath([0, 1], {preferDotForIndices: true}), '[0].1'); // First is still bracket
+	t.is(stringifyPath(['foo', 0, 1, 'bar'], {preferDotForIndices: true}), 'foo.0.1.bar');
+
+	// Numeric strings are normalized to numbers
+	t.is(stringifyPath(['foo', '0', 'bar']), 'foo[0].bar');
+	t.is(stringifyPath(['foo', '123']), 'foo[123]');
+	t.is(stringifyPath(['arr', '42']), 'arr[42]');
+
+	// Properties with special characters - should be escaped
+	t.is(stringifyPath(['foo.bar']), String.raw`foo\.bar`);
+	t.is(stringifyPath(['foo', 'bar.baz']), String.raw`foo.bar\.baz`);
+	t.is(stringifyPath(['foo[0]']), String.raw`foo\[0]`);
+	t.is(stringifyPath([String.raw`foo\bar`]), String.raw`foo\\bar`);
+
+	// Empty strings
+	t.is(stringifyPath(['']), '');
+	t.is(stringifyPath(['', '']), '.');
+	t.is(stringifyPath(['', '', '']), '..');
+	t.is(stringifyPath(['foo', '']), 'foo.');
+	t.is(stringifyPath(['', 'foo']), '.foo');
+
+	// Disallowed keys - output as regular properties (parsePath will filter them)
+	t.is(stringifyPath(['__proto__']), '__proto__');
+	t.is(stringifyPath(['foo', '__proto__']), 'foo.__proto__');
+	t.is(stringifyPath(['prototype']), 'prototype');
+	t.is(stringifyPath(['constructor']), 'constructor');
+	t.is(stringifyPath(['foo', 'constructor', 'bar']), 'foo.constructor.bar');
+
+	// Complex mixed paths
+	t.is(stringifyPath(['a', 'b', 0, 'c', 'd', 1, 2, 'e']), 'a.b[0].c.d[1][2].e');
+	t.is(stringifyPath(['foo.bar', 0, 'baz']), String.raw`foo\.bar[0].baz`);
+
+	// Non-integer numbers are treated as string keys
+	t.is(stringifyPath([1.5]), String.raw`1\.5`);
+	t.is(stringifyPath(['foo', 3.14]), String.raw`foo.3\.14`);
+	t.is(stringifyPath([-1]), '-1');
+	t.is(stringifyPath(['foo', -5]), 'foo.-5');
+
+	// Leading zeros stay as strings (dot notation, not coerced)
+	t.is(stringifyPath(['arr', '00']), 'arr.00');
+	t.is(stringifyPath(['arr', '01']), 'arr.01');
+
+	// Type validation
+	t.throws(() => stringifyPath(['foo', null]), {
+		message: /Expected a string or number.*got object/,
+	});
+	t.throws(() => stringifyPath(['foo', undefined]), {
+		message: /Expected a string or number.*got undefined/,
+	});
+	t.throws(() => stringifyPath(['foo', {}]), {
+		message: /Expected a string or number.*got object/,
+	});
+	t.throws(() => stringifyPath('not-an-array'), {
+		instanceOf: TypeError,
+		message: /Expected an array, got string/,
+	});
+});
+
+test('stringifyPath and parsePath roundtrip', t => {
+	// Test that stringifyPath(parsePath(x)) is consistent
+	const testPaths = [
+		'foo.bar',
+		'foo[0].bar',
+		'foo.bar.baz',
+		String.raw`foo\.bar`,
+		String.raw`foo\[0]`,
+		'a.b[0].c.d[1][2].e',
+		String.raw`foo\.bar[0].baz`,
+		'.',
+		'..',
+		'foo.',
+		'.foo',
+	];
+
+	for (const path of testPaths) {
+		const parsed = parsePath(path);
+		if (parsed.length > 0) {
+			const stringified = stringifyPath(parsed);
+			const reparsed = parsePath(stringified);
+			t.deepEqual(parsed, reparsed, `Roundtrip failed for: ${path}`);
+		}
+	}
+
+	// Test segments -> path -> segments roundtrip
+	const testSegments = [
+		['foo', 'bar'],
+		['foo', 0, 'bar'],
+		['foo.bar', 'baz'],
+		['foo[0]'],
+		[0, 1, 2],
+		['', ''],
+		['foo', '', 'bar'],
+	];
+
+	for (const segments of testSegments) {
+		const stringified = stringifyPath(segments);
+		const parsed = parsePath(stringified);
+		t.deepEqual(segments, parsed, `Roundtrip failed for segments: ${JSON.stringify(segments)}`);
+	}
+
+	// Test with preferDotForIndices
+	const dotNotationPath = 'foo.0.bar';
+	const dotParsed = parsePath(dotNotationPath);
+	const dotStringified = stringifyPath(dotParsed, {preferDotForIndices: true});
+	const dotReparsed = parsePath(dotStringified);
+	t.deepEqual(dotParsed, dotReparsed);
+	t.is(dotStringified, 'foo.0.bar');
+});
+
+test('stringifyPath with real-world use cases', t => {
+	// Use case: Building paths programmatically
+	const userIndex = 0;
+	const fieldName = 'email';
+	const path = stringifyPath(['users', userIndex, fieldName]);
+	t.is(path, 'users[0].email');
+
+	// Use case: Safely handling user input with special characters
+	const userInput = 'user.input[test]';
+	const safePath = stringifyPath(['data', userInput, 'value']);
+	t.is(safePath, String.raw`data.user\.input\[test].value`);
+
+	// Use case: Working with nested arrays
+	const matrixPath = stringifyPath(['matrix', 0, 1, 'value']);
+	t.is(matrixPath, 'matrix[0][1].value');
+
+	// Use case: Converting between notations
+	const dotNotation = stringifyPath(['items', 0, 'title'], {preferDotForIndices: true});
+	t.is(dotNotation, 'items.0.title');
+
+	// Verify the paths work with getProperty/setProperty
+	const object = {};
+	setProperty(object, path, 'test@example.com');
+	t.is(getProperty(object, path), 'test@example.com');
+
+	setProperty(object, safePath, 42);
+	t.is(getProperty(object, safePath), 42);
+});
+
+test('array paths - getProperty', t => {
+	// Basic array path usage
+	const object = {foo: {bar: {baz: 'value'}}};
+	t.is(getProperty(object, ['foo', 'bar', 'baz']), 'value');
+	t.is(getProperty(object, ['foo', 'bar']), object.foo.bar);
+
+	// Array paths with numeric indices
+	const arrayObject = {items: [{name: 'first'}, {name: 'second'}]};
+	t.is(getProperty(arrayObject, ['items', 0, 'name']), 'first');
+	t.is(getProperty(arrayObject, ['items', 1, 'name']), 'second');
+
+	// Empty array path returns undefined (invalid path)
+	t.is(getProperty(object, []), undefined);
+
+	// Non-existent paths
+	t.is(getProperty(object, ['foo', 'nonexistent']), undefined);
+	t.is(getProperty(object, ['foo', 'nonexistent'], 'default'), 'default');
+
+	// Disallowed keys in array paths
+	t.is(getProperty(object, ['__proto__', 'foo']), undefined);
+	t.is(getProperty(object, ['constructor']), undefined);
+
+	// Comparison with string paths
+	t.is(getProperty(object, ['foo', 'bar', 'baz']), getProperty(object, 'foo.bar.baz'));
+
+	// Mixed types in path array
+	const complex = {users: [{profile: {id: 123}}]};
+	t.is(getProperty(complex, ['users', 0, 'profile', 'id']), 123);
+
+	// String numbers vs numeric indices in array paths
+	const stringKeyObject = {arr: {0: 'number-zero'}};
+	t.is(getProperty(stringKeyObject, ['arr', 0]), 'number-zero');
+
+	const mixedKeyObject = {};
+	setProperty(mixedKeyObject, ['data', '0'], 'string-key');
+	setProperty(mixedKeyObject, ['data', 0], 'number-key');
+	// When object already exists, number 0 overwrites string '0'
+	t.is(mixedKeyObject.data[0], 'number-key');
+});
+
+test('array paths - setProperty', t => {
+	// Basic array path usage
+	const object = {};
+	setProperty(object, ['foo', 'bar', 'baz'], 'value');
+	t.is(object.foo.bar.baz, 'value');
+
+	// Array paths with numeric indices
+	const arrayObject = {};
+	setProperty(arrayObject, ['items', 0, 'name'], 'first');
+	t.true(Array.isArray(arrayObject.items));
+	t.is(arrayObject.items[0].name, 'first');
+
+	// Setting multiple values
+	setProperty(arrayObject, ['items', 1, 'name'], 'second');
+	t.is(arrayObject.items[1].name, 'second');
+
+	// Overwriting existing values
+	setProperty(object, ['foo', 'bar', 'baz'], 'new-value');
+	t.is(object.foo.bar.baz, 'new-value');
+
+	// Empty array path returns object unchanged
+	const unchanged = {a: 1};
+	const result = setProperty(unchanged, [], 'value');
+	t.is(result, unchanged);
+	t.deepEqual(unchanged, {a: 1});
+
+	// Disallowed keys in array paths should be filtered
+	const protectedObject = {};
+	setProperty(protectedObject, ['__proto__', 'polluted'], 'bad');
+	t.false('polluted' in Object.prototype);
+
+	// Comparison with string paths
+	const object1 = {};
+	const object2 = {};
+	setProperty(object1, ['a', 'b', 'c'], 'value');
+	setProperty(object2, 'a.b.c', 'value');
+	t.deepEqual(object1, object2);
+
+	// Numeric strings are normalized to numbers in array paths
+	const stringKeyObject = {};
+	setProperty(stringKeyObject, ['arr', '0'], 'value');
+	t.true(Array.isArray(stringKeyObject.arr)); // '0' normalized to 0, creates array
+	t.is(stringKeyObject.arr[0], 'value');
+});
+
+test('array paths - hasProperty', t => {
+	const object = {foo: {bar: {baz: 'value'}}};
+
+	// Basic array path usage
+	t.true(hasProperty(object, ['foo', 'bar', 'baz']));
+	t.true(hasProperty(object, ['foo', 'bar']));
+	t.true(hasProperty(object, ['foo']));
+
+	// Non-existent paths
+	t.false(hasProperty(object, ['foo', 'nonexistent']));
+	t.false(hasProperty(object, ['nonexistent']));
+
+	// Array paths with numeric indices
+	const arrayObject = {items: [{name: 'first'}, {name: 'second'}]};
+	t.true(hasProperty(arrayObject, ['items', 0, 'name']));
+	t.true(hasProperty(arrayObject, ['items', 1]));
+	t.false(hasProperty(arrayObject, ['items', 2]));
+
+	// Empty array path
+	t.false(hasProperty(object, []));
+
+	// Disallowed keys
+	t.false(hasProperty(object, ['__proto__']));
+	t.false(hasProperty(object, ['constructor']));
+
+	// Comparison with string paths
+	t.is(
+		hasProperty(object, ['foo', 'bar', 'baz']),
+		hasProperty(object, 'foo.bar.baz'),
+	);
+
+	// Falsy values should still return true
+	const falsyObject = {
+		a: {
+			b: null, c: 0, d: false, e: '',
+		},
+	};
+	t.true(hasProperty(falsyObject, ['a', 'b']));
+	t.true(hasProperty(falsyObject, ['a', 'c']));
+	t.true(hasProperty(falsyObject, ['a', 'd']));
+	t.true(hasProperty(falsyObject, ['a', 'e']));
+});
+
+test('array paths - deleteProperty', t => {
+	// Basic array path usage
+	const object = {foo: {bar: {baz: 'value', other: 'keep'}}};
+	t.true(deleteProperty(object, ['foo', 'bar', 'baz']));
+	t.is(object.foo.bar.baz, undefined);
+	t.is(object.foo.bar.other, 'keep');
+
+	// Array paths with numeric indices
+	const arrayObject = {items: ['a', 'b', 'c']};
+	t.true(deleteProperty(arrayObject, ['items', 1]));
+	t.is(arrayObject.items[1], undefined);
+	t.is(arrayObject.items.length, 3); // Length preserved
+
+	// Non-existent paths return false
+	t.false(deleteProperty(object, ['foo', 'nonexistent']));
+	t.false(deleteProperty({}, ['foo', 'bar']));
+
+	// Empty array path returns false
+	t.false(deleteProperty(object, []));
+
+	// Disallowed keys
+	t.false(deleteProperty(object, ['__proto__']));
+
+	// Comparison with string paths
+	const object1 = {a: {b: {c: 1}}};
+	const object2 = {a: {b: {c: 1}}};
+	deleteProperty(object1, ['a', 'b', 'c']);
+	deleteProperty(object2, 'a.b.c');
+	t.deepEqual(object1, object2);
+
+	// Deleting from nested arrays
+	const nested = {data: [{items: ['x', 'y', 'z']}]};
+	t.true(deleteProperty(nested, ['data', 0, 'items', 1]));
+	t.is(nested.data[0].items[1], undefined);
+});
+
+test('array paths - interoperability use case (issue #120)', t => {
+	// Simulate getting a path from another library
+	const pathFromOtherLib = ['users', 0, 'profile', 'settings', 'theme'];
+
+	// Create object using array path
+	const object = {};
+	setProperty(object, pathFromOtherLib, 'dark');
+	t.is(object.users[0].profile.settings.theme, 'dark');
+
+	// Read using array path
+	t.is(getProperty(object, pathFromOtherLib), 'dark');
+
+	// Check existence using array path
+	t.true(hasProperty(object, pathFromOtherLib));
+
+	// Delete using array path
+	t.true(deleteProperty(object, pathFromOtherLib));
+	t.false(hasProperty(object, pathFromOtherLib));
+
+	// Verify no redundant parsing happened
+	// This is the key benefit - we avoid stringify → parse cycle
+	const segments = ['foo', 'bar', 'baz'];
+	const object2 = {};
+	setProperty(object2, segments, 'value');
+	t.is(getProperty(object2, segments), 'value');
+});
+
+test('array paths - edge cases', t => {
+	// Single element array
+	const object = {foo: 'bar'};
+	t.is(getProperty(object, ['foo']), 'bar');
+
+	// Array with empty string
+	const emptyObject = {'': {nested: 'value'}};
+	setProperty(emptyObject, ['', 'nested'], 'updated');
+	t.is(getProperty(emptyObject, ['', 'nested']), 'updated');
+
+	// Very long array path
+	const deep = {};
+	const longPath = Array.from({length: 50}, (_, index) => `level${index}`);
+	setProperty(deep, longPath, 'deep-value');
+	t.is(getProperty(deep, longPath), 'deep-value');
+
+	// Array path with special characters in string segments
+	const special = {};
+	setProperty(special, ['foo.bar', 'baz[0]'], 'special');
+	t.is(special['foo.bar']['baz[0]'], 'special');
+	t.is(getProperty(special, ['foo.bar', 'baz[0]']), 'special');
+
+	// Type validation - invalid path types return object (no default) or default value
+	const testObject = {foo: 'bar'};
+	t.is(getProperty(testObject, null), testObject);
+	t.is(getProperty(testObject, null, 'default'), 'default');
+	t.is(getProperty(testObject, undefined), testObject);
+	t.is(getProperty(testObject, 123), testObject);
+});
+
+test('input validation - invalid array path segment types', t => {
+	const object = {foo: 'bar'};
+
+	// Test all invalid types
+	t.throws(() => getProperty(object, [null]), {
+		instanceOf: TypeError,
+		message: /Expected a string or number.*got object/,
+	});
+
+	t.throws(() => getProperty(object, [undefined]), {
+		instanceOf: TypeError,
+		message: /Expected a string or number.*got undefined/,
+	});
+
+	t.throws(() => getProperty(object, [{}]), {
+		instanceOf: TypeError,
+		message: /Expected a string or number.*got object/,
+	});
+
+	t.throws(() => getProperty(object, [Symbol('test')]), {
+		instanceOf: TypeError,
+		message: /Expected a string or number.*got symbol/,
+	});
+
+	t.throws(() => getProperty(object, [true]), {
+		instanceOf: TypeError,
+		message: /Expected a string or number.*got boolean/,
+	});
+
+	t.throws(() => getProperty(object, [false]), {
+		instanceOf: TypeError,
+		message: /Expected a string or number.*got boolean/,
+	});
+
+	// NaN and Infinity are typeof 'number' but invalid - should be rejected
+	t.throws(() => getProperty(object, [Number.NaN]), {
+		instanceOf: TypeError,
+		message: /must be a finite number/,
+	});
+
+	t.throws(() => getProperty(object, [Infinity]), {
+		instanceOf: TypeError,
+		message: /must be a finite number/,
+	});
+
+	t.throws(() => getProperty(object, [-Infinity]), {
+		instanceOf: TypeError,
+		message: /must be a finite number/,
+	});
+});
+
+test('input validation - setProperty with invalid segment types', t => {
+	t.throws(() => setProperty({}, [null], 'value'), {
+		instanceOf: TypeError,
+		message: /Expected a string or number/,
+	});
+
+	t.throws(() => setProperty({}, ['foo', {}], 'value'), {
+		instanceOf: TypeError,
+		message: /Expected a string or number/,
+	});
+});
+
+test('input validation - hasProperty with invalid segment types', t => {
+	t.throws(() => hasProperty({}, [null]), {
+		instanceOf: TypeError,
+		message: /Expected a string or number/,
+	});
+
+	t.throws(() => hasProperty({}, ['foo', undefined]), {
+		instanceOf: TypeError,
+		message: /Expected a string or number/,
+	});
+});
+
+test('input validation - deleteProperty with invalid segment types', t => {
+	t.throws(() => deleteProperty({}, [null]), {
+		instanceOf: TypeError,
+		message: /Expected a string or number/,
+	});
+
+	t.throws(() => deleteProperty({}, ['foo', Symbol('test')]), {
+		instanceOf: TypeError,
+		message: /Expected a string or number/,
+	});
+});
+
+test('input validation - stringifyPath type errors', t => {
+	// Non-array input
+	t.throws(() => stringifyPath('not-an-array'), {
+		instanceOf: TypeError,
+		message: /Expected an array, got string/,
+	});
+
+	t.throws(() => stringifyPath(null), {
+		instanceOf: TypeError,
+		message: /Expected an array, got object/, // Null is typeof object
+	});
+
+	// Invalid segment types
+	t.throws(() => stringifyPath([null]), {
+		instanceOf: TypeError,
+		message: /Expected a string or number/,
+	});
+
+	t.throws(() => stringifyPath(['foo', {}, 'bar']), {
+		instanceOf: TypeError,
+		message: /Expected a string or number/,
+	});
+
+	t.throws(() => stringifyPath([true, false]), {
+		instanceOf: TypeError,
+		message: /Expected a string or number/,
+	});
+});
+
+test('input validation - parsePath type errors', t => {
+	t.throws(() => parsePath(123), {
+		instanceOf: TypeError,
+		message: /Expected a string, got number/,
+	});
+
+	t.throws(() => parsePath(null), {
+		instanceOf: TypeError,
+		message: /Expected a string, got object/,
+	});
+
+	t.throws(() => parsePath(undefined), {
+		instanceOf: TypeError,
+		message: /Expected a string, got undefined/,
+	});
+
+	t.throws(() => parsePath([]), {
+		instanceOf: TypeError,
+		message: /Expected a string, got object/,
+	});
+});
+
+test('input validation - escapePath type errors', t => {
+	t.throws(() => escapePath(123), {
+		instanceOf: TypeError,
+		message: /Expected a string, got number/,
+	});
+
+	t.throws(() => escapePath(null), {
+		instanceOf: TypeError,
+		message: /Expected a string, got object/,
+	});
+
+	t.throws(() => escapePath(['array']), {
+		instanceOf: TypeError,
+		message: /Expected a string, got object/,
+	});
+});
+
+test('input validation - special number values in array paths', t => {
+	// NaN and Infinity are typeof 'number' but invalid - should be rejected
+	t.throws(() => {
+		setProperty({}, ['test', Number.NaN], 'value');
+	}, {message: /must be a finite number/});
+
+	t.throws(() => {
+		setProperty({}, ['test', Infinity], 'value');
+	}, {message: /must be a finite number/});
+
+	t.throws(() => {
+		setProperty({}, ['test', -Infinity], 'value');
+	}, {message: /must be a finite number/});
+
+	// Negative zero is valid (equals regular 0)
+	const objectWithNegativeZero = {};
+	setProperty(objectWithNegativeZero, ['test', -0], 'value');
+	t.true(Array.isArray(objectWithNegativeZero.test));
+	t.is(objectWithNegativeZero.test[0], 'value');
+});
+
+test('edge cases - MAX_ARRAY_INDEX boundary', t => {
+	// At the limit (1,000,000) - should be coerced to number
+	const atLimit = parsePath('arr.1000000');
+	t.deepEqual(atLimit, ['arr', 1_000_000]);
+	t.is(typeof atLimit[1], 'number');
+
+	// Above the limit - should remain string
+	const aboveLimit = parsePath('arr.1000001');
+	t.deepEqual(aboveLimit, ['arr', '1000001']);
+	t.is(typeof aboveLimit[1], 'string');
+
+	// Array path with numeric string above MAX_ARRAY_INDEX stays string
+	const object = {};
+	setProperty(object, ['arr', '1000001'], 'value');
+	t.is(object.arr['1000001'], 'value');
+	t.false(Array.isArray(object.arr)); // Above limit, not normalized
+});
+
+test('edge cases - stringifyPath with empty array and negative indices', t => {
+	// Empty array
+	t.is(stringifyPath([]), '');
+
+	// Negative indices are treated as string keys
+	t.is(stringifyPath(['arr', -1]), 'arr.-1');
+	t.is(stringifyPath([-5]), '-5');
+
+	// Float numbers are treated as string keys
+	t.is(stringifyPath([1.5]), String.raw`1\.5`);
+	t.is(stringifyPath(['arr', 3.14]), String.raw`arr.3\.14`);
+});
+
+test('edge cases - deepKeys with empty structures', t => {
+	// Empty object
+	t.deepEqual(deepKeys({}), []);
+
+	// Empty array
+	t.deepEqual(deepKeys([]), []);
+
+	// Object with only empty nested structures - returns paths to empty objects/arrays
+	const nested = {a: {}, b: []};
+	t.deepEqual(deepKeys(nested), ['a', 'b']);
+
+	// Deeper nesting
+	const deepNested = {a: {b: {c: {}}}};
+	t.deepEqual(deepKeys(deepNested), ['a.b.c']);
 });
