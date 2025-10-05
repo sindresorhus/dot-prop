@@ -266,6 +266,15 @@ function normalizePath(path) {
 	return [];
 }
 
+export default function dotProp(object) {
+	return new Proxy(object, {
+		get: (_target, property, _receiver) => getProperty(object, property),
+		set: (_target, property, value, _receiver) => setProperty(object, property, value),
+		deleteProperty: (_target, property) => deleteProperty(object, property),
+		has: (_target, property) => hasProperty(object, property),
+	});
+}
+
 export function getProperty(object, path, value) {
 	if (!isObject(object) || (typeof path !== 'string' && !Array.isArray(path))) {
 		return value === undefined ? object : value;
