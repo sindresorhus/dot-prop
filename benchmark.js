@@ -161,6 +161,52 @@ suite
 		};
 		deleteProperty(fixture2, String.raw`dotted.sub.dotted\.prop`);
 	})
+	.add('getProperty - with filter', () => {
+		const fixture1 = {
+			users: [
+				{id: 1, name: 'Alice', role: 'admin'},
+				{id: 2, name: 'Bob', role: 'user'},
+				{id: 3, name: 'Charlie', role: 'admin'},
+			],
+		};
+		getProperty(fixture1, 'users[id=1].name');
+		getProperty(fixture1, 'users[role="admin"].name');
+		getProperty(fixture1, 'users[id=2].role');
+		getProperty(fixture1, 'users[id=999].name', 'default');
+		getProperty(fixture1, 'users[role="guest"].name', 'default');
+	})
+	.add('setProperty - with filter', () => {
+		const fixture1 = {
+			users: [
+				{id: 1, name: 'Alice', role: 'admin'},
+				{id: 2, name: 'Bob', role: 'user'},
+			],
+		};
+		setProperty(fixture1, 'users[id=1].name', 'Alicia');
+		setProperty(fixture1, 'users[role="user"].name', 'Robert');
+		setProperty(fixture1, 'users[id=999].name', 'NoMatch');
+	})
+	.add('hasProperty - with filter', () => {
+		const fixture1 = {
+			users: [
+				{id: 1, name: 'Alice', role: 'admin'},
+				{id: 2, name: 'Bob', role: 'user'},
+			],
+		};
+		hasProperty(fixture1, 'users[id=1].name');
+		hasProperty(fixture1, 'users[role="admin"].name');
+		hasProperty(fixture1, 'users[id=999].name');
+	})
+	.add('deleteProperty - with filter', () => {
+		const fixture1 = {
+			users: [
+				{id: 1, name: 'Alice', role: 'admin', temp: 'data'},
+				{id: 2, name: 'Bob', role: 'user', temp: 'data'},
+			],
+		};
+		deleteProperty(fixture1, 'users[id=1].temp');
+		deleteProperty(fixture1, 'users[role="user"].temp');
+	})
 	.on('cycle', event => {
 		console.log(String(event.target));
 	})

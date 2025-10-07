@@ -61,6 +61,46 @@ function processSegment(segment, parts) {
 	return true;
 }
 
+// Helper to process a filter segment like 'bar="baz"'.
+function processFilterSegment(segment, parts) {
+	const equalIndex = segment.indexOf('=');
+
+	if (equalIndex === -1) {
+		throw new Error(`Invalid filter syntax: missing '=' in filter '${segment}'`);
+	}
+
+	const key = segment.slice(0, equalIndex);
+	const valueString = segment.slice(equalIndex + 1);
+
+	if (!key) {
+		throw new Error(`Invalid filter syntax: empty key in filter '${segment}'`);
+	}
+
+	let value;
+	try {
+		value = JSON.parse(valueString);
+	} catch {
+		throw new Error(`Invalid filter syntax: could not parse value in filter '${segment}'`);
+	}
+
+	// Only allow primitive values (not objects or arrays)
+	if (value !== null && typeof value === 'object') {
+		throw new Error(`Invalid filter syntax: filter value must be a JSON primitive, got ${typeof value}`);
+	}
+
+	parts.push({key, value});
+	return true;
+}
+
+// Helper to find an item in an array that matches a filter
+function findFilteredItem(array, filter) {
+	if (!Array.isArray(array)) {
+		return undefined;
+	}
+
+	return array.find(item => isObject(item) && item[filter.key] === filter.value);
+}
+
 export function parsePath(path) { // eslint-disable-line complexity
 	if (typeof path !== 'string') {
 		throw new TypeError(`Expected a string, got ${typeof path}`);
@@ -103,6 +143,12 @@ export function parsePath(path) { // eslint-disable-line complexity
 					throw new Error(`Invalid character '${character}' in an index at position ${position}`);
 				}
 
+				if (currentPart === 'filter') {
+					// In filter mode, dots are allowed (e.g., in numeric values)
+					currentSegment += character;
+					break;
+				}
+
 				if (currentPart === 'indexEnd') {
 					currentPart = 'property';
 					break;
@@ -120,6 +166,12 @@ export function parsePath(path) { // eslint-disable-line complexity
 			case '[': {
 				if (currentPart === 'index') {
 					throw new Error(`Invalid character '${character}' in an index at position ${position}`);
+				}
+
+				if (currentPart === 'filter') {
+					// In filter mode, accumulate - will be caught by JSON.parse or primitive check
+					currentSegment += character;
+					break;
 				}
 
 				if (currentPart === 'indexEnd') {
@@ -140,6 +192,19 @@ export function parsePath(path) { // eslint-disable-line complexity
 				break;
 			}
 
+			case '=': {
+				if (currentPart === 'index') {
+					// Transition to filter mode
+					currentSegment += character;
+					currentPart = 'filter';
+					break;
+				}
+
+				// In other contexts, = is just a regular character
+				currentSegment += character;
+				break;
+			}
+
 			case ']': {
 				if (currentPart === 'index') {
 					if (currentSegment === '') {
@@ -148,7 +213,7 @@ export function parsePath(path) { // eslint-disable-line complexity
 						currentSegment = lastSegment + '[]';
 						currentPart = 'property';
 					} else {
-						// Index must be digits only (enforced by default case)
+						// Check if it's a valid integer index
 						const parsedNumber = Number.parseInt(currentSegment, 10);
 						const isValidInteger = !Number.isNaN(parsedNumber)
 							&& Number.isFinite(parsedNumber)
@@ -160,7 +225,17 @@ export function parsePath(path) { // eslint-disable-line complexity
 						if (isValidInteger) {
 							parts.push(parsedNumber);
 						} else {
-							// Keep as string if not a valid integer representation or exceeds MAX_ARRAY_INDEX
+							// Not a valid integer - report the first invalid character
+							// This maintains backward compatibility with old error messages
+							for (let i = 0; i < currentSegment.length; i++) {
+								if (!isDigit(currentSegment[i])) {
+									const errorPosition = position - currentSegment.length + i;
+									throw new Error(`Invalid character '${currentSegment[i]}' in an index at position ${errorPosition}`);
+								}
+							}
+
+							// All digits but not valid (e.g., exceeds MAX_ARRAY_INDEX or has leading zeros)
+							// Keep as string
 							parts.push(currentSegment);
 						}
 
@@ -168,6 +243,16 @@ export function parsePath(path) { // eslint-disable-line complexity
 						currentPart = 'indexEnd';
 					}
 
+					break;
+				}
+
+				if (currentPart === 'filter') {
+					if (!processFilterSegment(currentSegment, parts)) {
+						return [];
+					}
+
+					currentSegment = '';
+					currentPart = 'indexEnd';
 					break;
 				}
 
@@ -181,9 +266,6 @@ export function parsePath(path) { // eslint-disable-line complexity
 			}
 
 			default: {
-				if (currentPart === 'index' && !isDigit(character)) {
-					throw new Error(`Invalid character '${character}' in an index at position ${position}`);
-				}
 
 				if (currentPart === 'indexEnd') {
 					throw new Error(`Invalid character '${character}' after an index at position ${position}`);
@@ -217,6 +299,10 @@ export function parsePath(path) { // eslint-disable-line complexity
 			throw new Error('Index was not closed');
 		}
 
+		case 'filter': {
+			throw new Error('Filter was not closed');
+		}
+
 		case 'start': {
 			parts.push('');
 			break;
@@ -236,6 +322,36 @@ function normalizePath(path) {
 		const normalized = [];
 
 		for (const [index, segment] of path.entries()) {
+			// Handle filter objects in array paths
+			if (typeof segment === 'object' && segment !== null) {
+				// Check if it looks like a filter object
+				const hasKey = 'key' in segment;
+				const hasValue = 'value' in segment;
+
+				if (!hasKey && !hasValue) {
+					// Empty object or object without filter properties
+					throw new TypeError(`Expected a string or number for path segment at index ${index}, got ${typeof segment}`);
+				}
+
+				// Validate filter object structure
+				if (!hasKey || !hasValue) {
+					throw new TypeError(`Filter object at index ${index} must have 'key' and 'value' properties`);
+				}
+
+				// Validate filter key is a string
+				if (typeof segment.key !== 'string') {
+					throw new TypeError(`Filter key at index ${index} must be a string, got ${typeof segment.key}`);
+				}
+
+				// Validate filter value is a primitive (not object or array)
+				if (segment.value !== null && typeof segment.value === 'object') {
+					throw new TypeError(`Filter value at index ${index} must be a JSON primitive, got ${typeof segment.value}`);
+				}
+
+				normalized.push(segment);
+				continue;
+			}
+
 			// Type validation.
 			if (typeof segment !== 'string' && typeof segment !== 'number') {
 				throw new TypeError(`Expected a string or number for path segment at index ${index}, got ${typeof segment}`);
@@ -278,7 +394,18 @@ export function getProperty(object, path, value) {
 
 	for (let index = 0; index < pathArray.length; index++) {
 		const key = pathArray[index];
-		object = object[key];
+
+		// Handle filter objects
+		if (typeof key === 'object' && key !== null) {
+			const found = findFilteredItem(object, key);
+			if (!found) {
+				return value;
+			}
+
+			object = found;
+		} else {
+			object = object[key];
+		}
 
 		if (object === undefined || object === null) {
 			// Return default value if we hit undefined/null before the end of the path.
@@ -309,16 +436,32 @@ export function setProperty(object, path, value) {
 	for (let index = 0; index < pathArray.length; index++) {
 		const key = pathArray[index];
 
-		if (index === pathArray.length - 1) {
+		// Handle filter objects
+		if (typeof key === 'object' && key !== null) {
+			const found = findFilteredItem(object, key);
+			if (!found) {
+				return root;
+			}
+
+			object = found;
+		} else if (index === pathArray.length - 1) {
 			object[key] = value;
 		} else if (!isObject(object[key])) {
 			const nextKey = pathArray[index + 1];
+
+			// If next key is a filter, check if we would need to create an array that won't have matches
+			if (typeof nextKey === 'object' && nextKey !== null) {
+				// Don't create an empty array for a filter that won't match
+				return root;
+			}
+
 			// Create arrays for numeric indices, objects for string keys
 			const shouldCreateArray = typeof nextKey === 'number';
 			object[key] = shouldCreateArray ? [] : {};
+			object = object[key];
+		} else {
+			object = object[key];
 		}
-
-		object = object[key];
 	}
 
 	return root;
@@ -338,7 +481,15 @@ export function deleteProperty(object, path) {
 	for (let index = 0; index < pathArray.length; index++) {
 		const key = pathArray[index];
 
-		if (index === pathArray.length - 1) {
+		// Handle filter objects
+		if (typeof key === 'object' && key !== null) {
+			const found = findFilteredItem(object, key);
+			if (!found) {
+				return false;
+			}
+
+			object = found;
+		} else if (index === pathArray.length - 1) {
 			const existed = Object.hasOwn(object, key);
 			if (!existed) {
 				return false;
@@ -346,12 +497,12 @@ export function deleteProperty(object, path) {
 
 			delete object[key];
 			return true;
-		}
+		} else {
+			object = object[key];
 
-		object = object[key];
-
-		if (!isObject(object)) {
-			return false;
+			if (!isObject(object)) {
+				return false;
+			}
 		}
 	}
 }
@@ -367,11 +518,21 @@ export function hasProperty(object, path) {
 	}
 
 	for (const key of pathArray) {
-		if (!isObject(object) || !(key in object)) {
-			return false;
-		}
+		// Handle filter objects
+		if (typeof key === 'object' && key !== null) {
+			const found = findFilteredItem(object, key);
+			if (!found) {
+				return false;
+			}
 
-		object = object[key];
+			object = found;
+		} else {
+			if (!isObject(object) || !(key in object)) {
+				return false;
+			}
+
+			object = object[key];
+		}
 	}
 
 	return true;
@@ -410,6 +571,28 @@ export function stringifyPath(pathSegments, options = {}) {
 	const parts = [];
 
 	for (const [index, segment] of pathSegments.entries()) {
+		// Handle filter objects
+		if (typeof segment === 'object' && segment !== null) {
+			// Check if it looks like a filter object
+			const hasKey = 'key' in segment;
+			const hasValue = 'value' in segment;
+
+			if (!hasKey && !hasValue) {
+				// Empty object or object without filter properties
+				throw new TypeError(`Expected a string or number for path segment at index ${index}, got ${typeof segment}`);
+			}
+
+			// Validate filter object structure
+			if (!hasKey || !hasValue) {
+				throw new TypeError(`Filter object at index ${index} must have 'key' and 'value' properties`);
+			}
+
+			// Reconstruct filter syntax
+			const filterString = `[${segment.key}=${JSON.stringify(segment.value)}]`;
+			parts.push(filterString);
+			continue;
+		}
+
 		// Validate segment types at runtime
 		if (typeof segment !== 'string' && typeof segment !== 'number') {
 			throw new TypeError(`Expected a string or number for path segment at index ${index}, got ${typeof segment}`);

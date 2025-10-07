@@ -1850,3 +1850,250 @@ test('edge cases - deepKeys with empty structures', t => {
 	const deepNested = {a: {b: {c: {}}}};
 	t.deepEqual(deepKeys(deepNested), ['a.b.c']);
 });
+
+test('array filter syntax - parsePath', t => {
+	// Basic filter syntax
+	t.deepEqual(parsePath('foo[bar="baz"]'), ['foo', {key: 'bar', value: 'baz'}]);
+	t.deepEqual(parsePath('[bar="baz"]'), [{key: 'bar', value: 'baz'}]);
+
+	// Different JSON primitive types
+	t.deepEqual(parsePath('foo[id=123]'), ['foo', {key: 'id', value: 123}]);
+	t.deepEqual(parsePath('foo[active=true]'), ['foo', {key: 'active', value: true}]);
+	t.deepEqual(parsePath('foo[active=false]'), ['foo', {key: 'active', value: false}]);
+	t.deepEqual(parsePath('foo[value=null]'), ['foo', {key: 'value', value: null}]);
+	t.deepEqual(parsePath('foo[price=5.99]'), ['foo', {key: 'price', value: 5.99}]);
+
+	// Filter followed by property access
+	t.deepEqual(parsePath('foo[bar="baz"].qux'), ['foo', {key: 'bar', value: 'baz'}, 'qux']);
+	t.deepEqual(parsePath('foo[bar="baz"].qux.nested'), ['foo', {key: 'bar', value: 'baz'}, 'qux', 'nested']);
+
+	// Filter followed by array index
+	t.deepEqual(parsePath('foo[bar="baz"][0]'), ['foo', {key: 'bar', value: 'baz'}, 0]);
+	t.deepEqual(parsePath('foo[bar="baz"][0].prop'), ['foo', {key: 'bar', value: 'baz'}, 0, 'prop']);
+
+	// Multiple filters
+	t.deepEqual(parsePath('foo[bar="baz"][qux="quux"]'), ['foo', {key: 'bar', value: 'baz'}, {key: 'qux', value: 'quux'}]);
+
+	// Nested path with filters
+	t.deepEqual(parsePath('users[role="admin"].profile[type="public"].name'), [
+		'users',
+		{key: 'role', value: 'admin'},
+		'profile',
+		{key: 'type', value: 'public'},
+		'name',
+	]);
+
+	// Error cases
+	t.throws(() => parsePath('foo[bar="baz"'), {message: 'Filter was not closed'});
+	t.throws(() => parsePath('foo[bar=]'), {message: 'Invalid filter syntax: could not parse value in filter \'bar=\''});
+	t.throws(() => parsePath('foo[="value"]'), {message: 'Invalid filter syntax: empty key in filter \'="value"\''});
+	t.throws(() => parsePath('foo[bar]'), {message: /Invalid character 'b' in an index at position 5/});
+	t.throws(() => parsePath('foo[bar={key:"val"}]'), {message: /Invalid filter syntax: could not parse value/});
+	t.throws(() => parsePath('foo[bar=["arr"]]'), {message: /Invalid filter syntax: could not parse value/});
+});
+
+test('array filter syntax - getProperty', t => {
+	const object = {
+		foo: [
+			{bar: 'baz', value: 1},
+			{bar: 'qux', value: 2},
+			{bar: 'baz', value: 3},
+		],
+	};
+
+	// Basic filter
+	t.is(getProperty(object, 'foo[bar="baz"].value'), 1); // First match
+	t.is(getProperty(object, 'foo[bar="qux"].value'), 2);
+
+	// Filter with different types
+	const typedObject = {
+		items: [
+			{id: 123, name: 'first'},
+			{id: 456, name: 'second'},
+			{active: true, name: 'active-item'},
+			{active: false, name: 'inactive-item'},
+			{price: 5.99, name: 'cheap'},
+			{value: null, name: 'null-value'},
+		],
+	};
+
+	t.is(getProperty(typedObject, 'items[id=123].name'), 'first');
+	t.is(getProperty(typedObject, 'items[id=456].name'), 'second');
+	t.is(getProperty(typedObject, 'items[active=true].name'), 'active-item');
+	t.is(getProperty(typedObject, 'items[active=false].name'), 'inactive-item');
+	t.is(getProperty(typedObject, 'items[price=5.99].name'), 'cheap');
+	t.is(getProperty(typedObject, 'items[value=null].name'), 'null-value');
+
+	// No match - returns default value
+	t.is(getProperty(object, 'foo[bar="nonexistent"].value'), undefined);
+	t.is(getProperty(object, 'foo[bar="nonexistent"].value', 'default'), 'default');
+
+	// Filter on non-array returns default
+	t.is(getProperty({foo: 'not-array'}, 'foo[bar="baz"]', 'default'), 'default');
+
+	// Nested filters
+	const nested = {
+		users: [
+			{role: 'admin', profile: [{type: 'public', name: 'Admin Profile'}]},
+			{role: 'user', profile: [{type: 'private', name: 'User Profile'}]},
+		],
+	};
+
+	t.is(getProperty(nested, 'users[role="admin"].profile[0].name'), 'Admin Profile');
+});
+
+test('array filter syntax - setProperty', t => {
+	// Set on existing matching item
+	const object1 = {
+		foo: [
+			{bar: 'baz', value: 1},
+			{bar: 'qux', value: 2},
+		],
+	};
+
+	setProperty(object1, 'foo[bar="baz"].value', 100);
+	t.is(object1.foo[0].value, 100);
+	t.is(object1.foo[1].value, 2); // Other items unchanged
+
+	// Does not create new item when no match
+	const object2 = {foo: []};
+	setProperty(object2, 'foo[bar="baz"].value', 42);
+	t.is(object2.foo.length, 0); // No item created
+
+	// Does not create array when filter would not match
+	const object3 = {};
+	setProperty(object3, 'items[id=123].name', 'test');
+	t.is(object3.items, undefined); // No array created
+
+	// Different value types - only updates existing items
+	const object4 = {
+		items: [
+			{id: 1, name: 'old'},
+			{active: true, name: 'old'},
+			{value: null, name: 'old'},
+		],
+	};
+	setProperty(object4, 'items[id=1].name', 'numeric-id');
+	setProperty(object4, 'items[active=true].name', 'active');
+	setProperty(object4, 'items[value=null].name', 'null-val');
+	t.is(object4.items.length, 3);
+	t.is(object4.items[0].name, 'numeric-id');
+	t.is(object4.items[1].name, 'active');
+	t.is(object4.items[2].name, 'null-val');
+});
+
+test('array filter syntax - hasProperty', t => {
+	const object = {
+		foo: [
+			{bar: 'baz', value: 1},
+			{bar: 'qux', value: 2},
+		],
+	};
+
+	t.true(hasProperty(object, 'foo[bar="baz"].value'));
+	t.true(hasProperty(object, 'foo[bar="qux"].value'));
+	t.false(hasProperty(object, 'foo[bar="nonexistent"].value'));
+	t.false(hasProperty(object, 'foo[bar="baz"].nonexistent'));
+
+	// Filter on non-array
+	t.false(hasProperty({foo: 'not-array'}, 'foo[bar="baz"]'));
+
+	// Different types
+	const typed = {
+		items: [
+			{id: 123, name: 'test'},
+			{active: true, value: 'yes'},
+		],
+	};
+
+	t.true(hasProperty(typed, 'items[id=123].name'));
+	t.true(hasProperty(typed, 'items[active=true].value'));
+	t.false(hasProperty(typed, 'items[id=999].name'));
+});
+
+test('array filter syntax - deleteProperty', t => {
+	const object = {
+		foo: [
+			{bar: 'baz', value: 1, extra: 'data'},
+			{bar: 'qux', value: 2},
+		],
+	};
+
+	// Delete property from filtered item
+	t.true(deleteProperty(object, 'foo[bar="baz"].extra'));
+	t.is(object.foo[0].extra, undefined);
+	t.is(object.foo[0].value, 1); // Other properties preserved
+	t.is(object.foo[1].value, 2); // Other items preserved
+
+	// Delete from non-existent filter match
+	t.false(deleteProperty(object, 'foo[bar="nonexistent"].value'));
+
+	// Delete from non-array
+	t.false(deleteProperty({foo: 'not-array'}, 'foo[bar="baz"].value'));
+});
+
+test('array filter syntax - stringifyPath', t => {
+	// Basic filter
+	t.is(stringifyPath(['foo', {key: 'bar', value: 'baz'}]), 'foo[bar="baz"]');
+
+	// Different value types
+	t.is(stringifyPath(['foo', {key: 'id', value: 123}]), 'foo[id=123]');
+	t.is(stringifyPath(['foo', {key: 'active', value: true}]), 'foo[active=true]');
+	t.is(stringifyPath(['foo', {key: 'active', value: false}]), 'foo[active=false]');
+	t.is(stringifyPath(['foo', {key: 'value', value: null}]), 'foo[value=null]');
+	t.is(stringifyPath(['foo', {key: 'price', value: 5.99}]), 'foo[price=5.99]');
+
+	// Filter with property access
+	t.is(stringifyPath(['foo', {key: 'bar', value: 'baz'}, 'qux']), 'foo[bar="baz"].qux');
+
+	// Filter with array index
+	t.is(stringifyPath(['foo', {key: 'bar', value: 'baz'}, 0]), 'foo[bar="baz"][0]');
+
+	// Multiple filters
+	t.is(stringifyPath(['foo', {key: 'bar', value: 'baz'}, {key: 'qux', value: 'quux'}]), 'foo[bar="baz"][qux="quux"]');
+
+	// Error cases
+	t.throws(() => stringifyPath([{key: 'bar'}]), {message: 'Filter object at index 0 must have \'key\' and \'value\' properties'});
+	t.throws(() => stringifyPath([{value: 'baz'}]), {message: 'Filter object at index 0 must have \'key\' and \'value\' properties'});
+});
+
+test('array filter syntax - roundtrip', t => {
+	const paths = [
+		'foo[bar="baz"]',
+		'foo[id=123].name',
+		'foo[active=true].value',
+		'users[role="admin"].profile[type="public"].name',
+		'items[price=5.99][0].title',
+	];
+
+	for (const path of paths) {
+		const parsed = parsePath(path);
+		const stringified = stringifyPath(parsed);
+		const reparsed = parsePath(stringified);
+		t.deepEqual(parsed, reparsed, `Roundtrip failed for: ${path}`);
+	}
+});
+
+test('array filter syntax - array path usage', t => {
+	const object = {
+		items: [
+			{id: 1, name: 'first'},
+			{id: 2, name: 'second'},
+		],
+	};
+
+	// Using array paths with filter objects
+	const filterPath = ['items', {key: 'id', value: 1}, 'name'];
+	t.is(getProperty(object, filterPath), 'first');
+
+	// setProperty only updates existing items, doesn't create
+	const object2 = {items: [{id: 1, name: 'old'}]};
+	setProperty(object2, filterPath, 'test');
+	t.is(object2.items[0].name, 'test');
+
+	t.true(hasProperty(object, filterPath));
+
+	const object3 = {items: [{id: 1, name: 'test', extra: 'data'}]};
+	t.true(deleteProperty(object3, ['items', {key: 'id', value: 1}, 'extra']));
+	t.is(object3.items[0].extra, undefined);
+});
