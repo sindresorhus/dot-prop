@@ -2086,7 +2086,7 @@ test('array filter syntax - array path usage', t => {
 	const filterPath = ['items', {key: 'id', value: 1}, 'name'];
 	t.is(getProperty(object, filterPath), 'first');
 
-	// setProperty only updates existing items, doesn't create
+	// `setProperty` only updates existing items, doesn't create
 	const object2 = {items: [{id: 1, name: 'old'}]};
 	setProperty(object2, filterPath, 'test');
 	t.is(object2.items[0].name, 'test');

@@ -266,7 +266,6 @@ export function parsePath(path) { // eslint-disable-line complexity
 			}
 
 			default: {
-
 				if (currentPart === 'indexEnd') {
 					throw new Error(`Invalid character '${character}' after an index at position ${position}`);
 				}
@@ -446,7 +445,9 @@ export function setProperty(object, path, value) {
 			object = found;
 		} else if (index === pathArray.length - 1) {
 			object[key] = value;
-		} else if (!isObject(object[key])) {
+		} else if (isObject(object[key])) {
+			object = object[key];
+		} else {
 			const nextKey = pathArray[index + 1];
 
 			// If next key is a filter, check if we would need to create an array that won't have matches
@@ -458,8 +459,6 @@ export function setProperty(object, path, value) {
 			// Create arrays for numeric indices, objects for string keys
 			const shouldCreateArray = typeof nextKey === 'number';
 			object[key] = shouldCreateArray ? [] : {};
-			object = object[key];
-		} else {
 			object = object[key];
 		}
 	}

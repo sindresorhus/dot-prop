@@ -200,8 +200,12 @@ suite
 	.add('deleteProperty - with filter', () => {
 		const fixture1 = {
 			users: [
-				{id: 1, name: 'Alice', role: 'admin', temp: 'data'},
-				{id: 2, name: 'Bob', role: 'user', temp: 'data'},
+				{
+					id: 1, name: 'Alice', role: 'admin', temp: 'data',
+				},
+				{
+					id: 2, name: 'Bob', role: 'user', temp: 'data',
+				},
 			],
 		};
 		deleteProperty(fixture1, 'users[id=1].temp');
