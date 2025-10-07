@@ -1,11 +1,13 @@
-# dot-prop
+# dot-prop-extra
 
 > Get, set, or delete a property from a nested object using a dot path
+
+This is a fork of [sindresorhus/dot-prop](https://github.com/sindresorhus/dot-prop) with added syntax to filter arrays by property value.
 
 ## Install
 
 ```sh
-npm install dot-prop
+npm install dot-prop-extra
 ```
 
 ## Usage
@@ -32,6 +34,9 @@ getProperty({foo: [{bar: 'unicorn'}]}, 'foo[0].bar');
 getProperty({foo: [{bar: 'unicorn'}]}, 'foo.0.bar');
 //=> 'unicorn'
 
+getProperty({foo: [{bar: 'unicorn'}, {bar: 'rainbow', baz: 'a'}]}, 'foo[bar="rainbow"].baz');
+//=> 'a'
+
 // Setter
 const object = {foo: {bar: 'a'}};
 setProperty(object, 'foo.bar', 'b');
@@ -54,6 +59,11 @@ setProperty(object, 'foo.items.0', 'first');
 console.log(object);
 //=> {foo: {bar: 'b', baz: 'x', biz: ['a'], items: ['first']}}
 
+const object2 = { foo: [{id: 1}, {id: 2}] };
+setProperty(object2, 'foo[id=2].name', 'second');
+console.log(object2);
+//=> { foo: [{id: 1}, {id: 2, name: 'second'}] }
+
 // Has
 hasProperty({foo: {bar: 'unicorn'}}, 'foo.bar');
 //=> true
@@ -68,6 +78,27 @@ object.foo.bar = {x: 'y', y: 'x'};
 deleteProperty(object, 'foo.bar.x');
 console.log(object);
 //=> {foo: {bar: {y: 'x'}}}
+```
+
+### Array filtering
+
+You can filter arrays by property value using the syntax `[property=value]`. This will find the first object in the array where the specified property matches the given value.
+
+```js
+import {getProperty, setProperty} from 'dot-prop';
+const object = {
+	users: [
+		{name: 'Alice', role: 'admin'},
+		{name: 'Bob', role: 'user'}
+	]
+};
+// Get the role of the user named 'Bob'
+getProperty(object, 'users[name="Bob"].role');
+//=> 'user'
+// Set the role of the user named 'Alice' to 'superadmin'
+setProperty(object, 'users[name="Alice"].role', 'superadmin');
+console.log(object.users[0].role);
+//=> 'superadmin'
 ```
 
 ### Array paths
