@@ -1,3 +1,4 @@
+import process from 'node:process';
 import test from 'ava';
 import {
 	getProperty,
@@ -428,6 +429,17 @@ test('escapePath', t => {
 	});
 });
 
+test('escapePath - keys containing "]" round-trip correctly', t => {
+	t.deepEqual(parsePath(']'), [']']);
+	t.deepEqual(parsePath(']]'), [']]']);
+
+	for (const key of [']', ']]', ']a', 'a]', ']x]', '].y']) {
+		const object = {[key]: 'value'};
+		t.is(getProperty(object, escapePath(key)), 'value', `key ${JSON.stringify(key)}`);
+		t.true(hasProperty(object, escapePath(key)), `has ${JSON.stringify(key)}`);
+	}
+});
+
 test('deepKeys', t => {
 	const object = {
 		eo: {},
@@ -510,6 +522,54 @@ test('prevent setting/getting `prototype`', t => {
 	t.false(hasProperty({}, 'prototype'));
 });
 
+test('setProperty preserves inherited user-defined plain containers', t => {
+	const parent = {
+		shared: {secret: 'original'},
+		items: [{secret: 'item original'}],
+	};
+	const child = Object.create(parent);
+	setProperty(child, 'shared.extra', 'added');
+	setProperty(child, 'items[0].extra', 'added');
+	t.is(parent.shared.secret, 'original');
+	t.is(parent.shared.extra, 'added');
+	t.is(child.shared.extra, 'added');
+	t.is(parent.items[0].extra, 'added');
+	t.is(child.items[0].extra, 'added');
+	t.is(child.shared, parent.shared);
+	t.is(child.items, parent.items);
+});
+
+test('setProperty preserves inherited user-defined instances and functions', t => {
+	class Model {}
+	const model = new Model();
+	function method() {
+		return '[native code]';
+	}
+
+	const parent = {model, method};
+	const child = Object.create(parent);
+
+	setProperty(child, 'model.value', 'added');
+	setProperty(child, 'method.value', 'added');
+
+	t.is(model.value, 'added');
+	t.is(method.value, 'added');
+});
+
+test('setProperty preserves inherited bound and proxied functions', t => {
+	function method() {}
+	const boundMethod = method.bind(undefined);
+	const proxiedMethod = new Proxy(method, {});
+	const parent = {boundMethod, proxiedMethod};
+	const child = Object.create(parent);
+
+	setProperty(child, 'boundMethod.value', 'added');
+	setProperty(child, 'proxiedMethod.value', 'added');
+
+	t.is(boundMethod.value, 'added');
+	t.is(proxiedMethod.value, 'added');
+});
+
 test('return default value if path is invalid', t => {
 	t.is(getProperty({}, 'constructor', '🦄'), '🦄');
 });
@@ -535,6 +595,43 @@ test('deepKeys with cyclic references', t => {
 	// It tries to recurse but stops due to cycle detection
 	const keys = deepKeys(object);
 	t.deepEqual(keys, []);
+});
+
+test('deepKeys does not overflow the stack on deeply nested objects', t => {
+	const object = {};
+	let current = object;
+	for (let index = 0; index < 100_000; index++) {
+		current.a = {};
+		current = current.a;
+	}
+
+	current.a = 1;
+
+	const keys = deepKeys(object);
+	t.is(keys.length, 1);
+	t.is(keys[0].split('.').length, 100_001);
+});
+
+test('deepKeys stays linear on deeply nested objects', t => {
+	const depth = 20_000;
+	const object = {};
+	let current = object;
+	for (let index = 0; index < depth; index++) {
+		current.leaf = index;
+		current.next = {};
+		current = current.next;
+	}
+
+	current.leaf = depth;
+
+	const start = process.hrtime.bigint();
+	const keys = deepKeys(object);
+	const milliseconds = Number(process.hrtime.bigint() - start) / 1e6;
+
+	t.is(keys.length, depth + 1);
+	// The quadratic implementation took minutes at this depth; the linear one is
+	// milliseconds. A generous bound keeps this robust on loaded CI.
+	t.true(milliseconds < 5000, `deepKeys took ${milliseconds.toFixed(0)}ms`);
 });
 
 test('edge cases for mixed array and object paths', t => {
@@ -611,6 +708,24 @@ test('array length property', t => {
 		deleteProperty(fixture, 'foo.length');
 	}, {message: 'Cannot delete property \'length\' of [object Array]'});
 	t.is(fixture.foo.length, 3);
+});
+
+test('deepKeys with numeric string keys on plain objects', t => {
+	const object = {0: 'a', 2: 'b'};
+	const keys = deepKeys(object);
+	t.deepEqual(keys, ['[0]', '[2]']);
+	for (const key of keys) {
+		t.true(hasProperty(object, key));
+	}
+});
+
+test('deepKeys keys under an empty string key resolve', t => {
+	const object = {'': [9, {'': 1}]};
+	const keys = deepKeys(object);
+	t.deepEqual(keys, ['.0', '.1.']);
+	for (const key of keys) {
+		t.true(hasProperty(object, key), `key ${key}`);
+	}
 });
 
 test('deepKeys with nested empty objects and arrays', t => {
@@ -753,6 +868,14 @@ test('unflatten - disallowed keys are ignored safely', t => {
 	// Ensure prototype is not polluted via inherited property
 	const empty = {};
 	t.false('polluted' in empty);
+});
+
+test('unflatten - bare disallowed keys are silently dropped', t => {
+	const flat = JSON.parse('{"__proto__": "bad", "valid": 1}');
+	const result = unflatten(flat);
+	t.is(result.valid, 1);
+	t.false(Object.hasOwn(result, '__proto__'));
+	t.false('bad' in ({}).constructor.prototype);
 });
 
 test('unflatten - non-object input returns empty object', t => {
@@ -1237,6 +1360,29 @@ test('parsePath', t => {
 	t.deepEqual(parsePath('constructor'), []);
 	t.deepEqual(parsePath('foo.constructor.bar'), []);
 
+	// Disallowed keys before array indices
+	t.deepEqual(parsePath('__proto__[0]'), []);
+	t.deepEqual(parsePath('constructor[0]'), []);
+	t.deepEqual(parsePath('foo.__proto__[0]'), []);
+
+	// Disallowed keys before empty brackets. Only the check at `[` catches these,
+	// since `[]` is folded into the segment and never reaches `processSegment`.
+	t.deepEqual(parsePath('__proto__[]'), []);
+	t.deepEqual(parsePath('foo.constructor[]'), []);
+
+	// Dot-then-index (tests the hadProperty/empty-segment flush)
+	t.deepEqual(parsePath('foo.[0]'), ['foo', '', 0]);
+	t.deepEqual(parsePath('.[0]'), ['', '', 0]);
+
+	// Mixed empty and real brackets
+	t.deepEqual(parsePath('a[][0]'), ['a[]', 0]);
+
+	// Empty brackets after a falsy segment. The old backtracking used `parts.pop() || ''`,
+	// which silently dropped a `0` index or an empty-string key.
+	t.deepEqual(parsePath('0[]'), ['0[]']);
+	t.deepEqual(parsePath('[0][]'), [0, '[]']);
+	t.deepEqual(parsePath('.[]'), ['', '[]']);
+
 	// Complex paths
 	t.deepEqual(parsePath('a.b[0].c.d[1][2].e'), ['a', 'b', 0, 'c', 'd', 1, 2, 'e']);
 	t.deepEqual(parsePath(String.raw`foo\.bar[0].baz`), ['foo.bar', 0, 'baz']);
@@ -1251,6 +1397,20 @@ test('parsePath', t => {
 	const path = 'users.0.profile.settings.theme';
 	const segments = parsePath(path);
 	t.deepEqual(segments, ['users', 0, 'profile', 'settings', 'theme']);
+});
+
+test('parsePath stays linear on repeated empty brackets', t => {
+	// Empty-bracket backtracking previously re-scanned a growing literal on every
+	// `[`, making a small untrusted path string block for seconds (a parse DoS).
+	const count = 50_000;
+	const path = 'a' + '[]'.repeat(count);
+
+	const start = process.hrtime.bigint();
+	const result = parsePath(path);
+	const milliseconds = Number(process.hrtime.bigint() - start) / 1e6;
+
+	t.deepEqual(result, ['a' + '[]'.repeat(count)]);
+	t.true(milliseconds < 1000, `parsePath took ${milliseconds.toFixed(0)}ms`);
 });
 
 test('stringifyPath', t => {
@@ -1361,6 +1521,11 @@ test('stringifyPath and parsePath roundtrip', t => {
 		[0, 1, 2],
 		['', ''],
 		['foo', '', 'bar'],
+		// An index after a leading empty key must not use bracket notation, since a
+		// leading `[1]` reparses as a bare index and drops the empty key.
+		['', 1],
+		['', 0, 0],
+		['', '', 1],
 	];
 
 	for (const segments of testSegments) {
@@ -1814,6 +1979,10 @@ test('edge cases - MAX_ARRAY_INDEX boundary', t => {
 	const aboveLimit = parsePath('arr.1000001');
 	t.deepEqual(aboveLimit, ['arr', '1000001']);
 	t.is(typeof aboveLimit[1], 'string');
+
+	// Bracket notation follows the same boundary
+	t.deepEqual(parsePath('arr[1000000]'), ['arr', 1_000_000]);
+	t.deepEqual(parsePath('arr[1000001]'), ['arr', '1000001']);
 
 	// Array path with numeric string above MAX_ARRAY_INDEX stays string
 	const object = {};

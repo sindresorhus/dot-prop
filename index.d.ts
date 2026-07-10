@@ -233,6 +233,8 @@ Convert an object with dot paths into a nested object.
 
 Uses the same path rules and escaping as the rest of the API.
 
+Numeric keys become array indices, so nodes with numeric keys turn into arrays. The `deepKeys` → `unflatten` round-trip is therefore lossy for such objects (`{a: {0: 'x', name: 'y'}}` → `{a: ['x']}`), and untrusted input can yield arrays where you expected objects.
+
 @param object - A plain object mapping paths to values.
 @returns A new nested object.
 

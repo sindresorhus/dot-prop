@@ -261,7 +261,12 @@ Path of the property in the object.
 
 **Array paths**: Pass an array of path segments for better performance and interoperability. Numbers create arrays (like `['users', 0, 'name']`). Numeric strings are normalized to numbers for simplicity. No parsing overhead.
 
-The following path components are invalid and results in `undefined` being returned: `__proto__`, `prototype`, `constructor`.
+The following path components are invalid and result in `undefined` being returned: `__proto__`, `prototype`, `constructor`.
+
+> [!IMPORTANT]
+> Sanitizing untrusted `path` input is your responsibility. Use [`escapePath`](#escapepathpath) to treat it as a literal key.
+>
+> Apart from the components above, no protection against attacker-controlled paths is attempted. A path can reach anything reachable from the object, including inherited properties and built-ins. Only you know which parts of your object graph are safe to expose, so guard that where the path enters your program.
 
 #### value
 
@@ -302,3 +307,6 @@ unflatten(flat);
 }
 */
 ```
+
+> [!IMPORTANT]
+> Numeric keys become array indices, so nodes with numeric keys turn into arrays. The `deepKeys` → `unflatten` round-trip is therefore lossy for such objects (`{a: {0: 'x', name: 'y'}}` → `{a: ['x']}`), and untrusted input can yield arrays where you expected objects.
